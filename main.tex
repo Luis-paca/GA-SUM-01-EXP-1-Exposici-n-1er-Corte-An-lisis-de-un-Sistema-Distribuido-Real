@@ -1,0 +1,49 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{referencias.bib}
+
+\begin{document}
+
+\begin{center}
+    \textbf{\Large UNIVERSIDAD TÉCNICA ESTATAL DE QUEVEDO}\\
+    \textbf{Facultad de Ciencias de la Computación y Diseño Digital}\\
+    \textbf{Carrera de Ingeniería en Software -- Paralelo A}\\[0.4cm]
+    \textbf{\large Notas de Presentación: WebSockets, TCP y UDP aplicados a JobFinder}\\
+    \small Actividad: GA-SUM-02 / EXP-1 (Exposición 1.er Corte) -- Equipo EJPZ
+\end{center}
+
+\vspace{0.2cm}
+\noindent\textbf{Integrantes:} España Vera Kenny Isaías, Jaramillo Acosta Luis Jeremy, Paca Pilataza Luis Alberto, Zambrano Ronquillo Heiner Ariel.
+
+\section{Guion Desarrollado por Turnos de Exposición (12 Minutos)}
+
+\subsection{Bloque 1: Fundamentos de Transporte y Presentación del Sistema (Minutos 0:00--3:00) -- Expositor: Kenny Isaías España Vera}
+En la capa de transporte, TCP establece una sesión mediante saludo de tres vías y asegura entrega ordenada mediante acuses de recibo (ACK) y retransmisión, mientras que UDP envía datagramas independientes sin conexión ni garantía de recepción. El protocolo WebSocket (RFC 6455) opera sobre TCP iniciando con una negociación HTTP (\texttt{Upgrade: websocket}) que responde \texttt{101 Switching Protocols}, habilitando un canal \textit{full-duplex} persistente sin la sobrecarga de cabeceras del \textit{polling} tradicional.
+
+\textbf{Presentación de JobFinder (Punto 1):} JobFinder resuelve la baja inserción laboral institucional de los graduados de la UTEQ, donde el seguimiento institucional reporta que solo el 51,50\,\% ejerce y apenas el 8,41\,\% consigue empleo mediante bolsas universitarias. El sistema atiende a graduados, empresas colaboradoras y administradores. \textit{Práctica 1:} ejecución de datagramas UDP en consola frente a la inspección del \textit{handshake} HTTP 101 en Chrome DevTools.
+
+\subsection{Bloque 2: Arquitectura y Modelos de Comunicación (Minutos 3:00--6:00) -- Expositor: Luis Jeremy Jaramillo Acosta}
+\textbf{Arquitectura (Punto 2):} Elaborada en \texttt{draw.io} en tres niveles sobre TCP: (1) clientes web en Angular (\texttt{:4200}); (2) backend en Spring Boot (\texttt{:8080}) compuesto por API REST (\texttt{/api/**}), módulo WebSocket y notificaciones (actualmente STOMP/SockJS en \texttt{/ws-notificaciones} y extendido en nuestra práctica con \texttt{ws://} puro \textit{full-duplex}) e integración con la API externa JSearch; y (3) persistencia en PostgreSQL (\texttt{:5432}, base de datos \texttt{BolsaEmpleoNew} con auditoría en \texttt{seguridad.auditoria}) junto a correo SMTP (\texttt{smtp.gmail.com:587}).
+
+\textbf{Modelos de comunicación (Punto 5):} JobFinder aplica un modelo cliente-servidor híbrido sobre TCP. Las operaciones transaccionales (registro, validación de ofertas RF-05 y postulación RF-04) usan REST síncrono; las alertas de vacantes (RF-06) y cambios de estado (RF-10) usan WebSockets asíncronos. Se descartó UDP porque la pérdida silenciosa de un paquete impediría notificar una entrevista al graduado. \textit{Práctica 2:} envío de mensaje simple (eco TCP) seguido del flujo bidireccional RF-10 (la empresa cita a entrevista y el graduado confirma asistencia en vivo).
+
+\subsection{Bloque 3: Transparencias de Distribución y Teoremas CAP/PACELC (Minutos 6:00--9:00) -- Expositor: Heiner Ariel Zambrano Ronquillo}
+\textbf{Transparencias (Punto 3):} JobFinder ofrece transparencia de acceso y ubicación al unificar los servicios detrás de rutas lógicas sin exponer puertos internos, y transparencia de concurrencia para múltiples sesiones WebSocket simultáneas. No garantiza transparencia total de fallos ante desconexiones abruptas de red móvil ni migración automática de sesiones en memoria.
+
+\textbf{CAP y PACELC (Punto 4):} Ante una partición de red (\textbf{P}) hacia PostgreSQL, el sistema sacrifica disponibilidad de escritura y prioriza \textbf{Consistencia (C)} para evitar postulaciones duplicadas. Sin partición (\textbf{E}), PACELC equilibra baja \textbf{Latencia (L)} en notificaciones WebSocket y \textbf{Consistencia (C)} en transacciones relacionales. \textit{Práctica 3:} simulación de partición de base de datos con bloqueo controlado de escrituras.
+
+\subsection{Bloque 4: Tolerancia a Fallos, Comparativa y Lecciones PFC (Minutos 9:00--12:00) -- Expositor: Luis Alberto Paca Pilataza}
+\textbf{Tolerancia a fallos (Punto 6):} Se detectan enlaces caídos mediante tramas de control \texttt{PING/PONG} cada 5 segundos y \textit{timeouts} TCP, recuperando la sesión cliente mediante reconexión escalonada con \textit{backoff} exponencial (1\,s, 2\,s, 4\,s, 8\,s). Aplicando el análisis de causas raíz de FORM-AC-01 (caída de Facebook de 2021), se evita el acoplamiento entre procesos externos y el bucle principal de eventos.
+
+\textbf{Comparación y lecciones PFC (Puntos 7 y 8):} Frente a LinkedIn y CompuTrabajo, JobFinder aporta validación administrativa previa (RF-05), asumiendo como compromiso (\textit{trade-off}) mayor consumo de RAM por mantener sockets TCP abiertos frente a APIs \textit{stateless}. Para la entrega \texttt{TA-PFC-E1} se aislará la importación externa (RF-07) en un contenedor Docker independiente con colas asíncronas. \textit{Práctica 4:} detención abrupta del servidor (\texttt{Ctrl+C}) y reconexión automática del cliente.
+
+\end{document}
