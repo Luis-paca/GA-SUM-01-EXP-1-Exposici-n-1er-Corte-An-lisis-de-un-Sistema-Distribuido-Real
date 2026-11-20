@@ -1,49 +1,152 @@
+% =====================================================================
+%  Notas de presentación — GA-SUM-02 / EXP-1
+%  Parte 1 — Kenny: encabezado + secciones 1 y 2
+%  Sistema analizado: Bolsa de Empleos para Graduados UTEQ
+%  Compilar: pdflatex -> bibtex -> pdflatex -> pdflatex
+% =====================================================================
 \documentclass[11pt,a4paper]{article}
+
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[spanish]{babel}
+\usepackage[spanish,es-nodecimaldot,es-tabla]{babel}
 \usepackage{lmodern}
-\usepackage[margin=2.2cm]{geometry}
-\usepackage{graphicx}
+\usepackage[margin=2cm]{geometry}
+\usepackage{enumitem}
 \usepackage{booktabs}
 \usepackage{tabularx}
-\usepackage{hyperref}
-\usepackage[backend=biber,style=ieee]{biblatex}
-\addbibresource{referencias.bib}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\setlist{nosep,leftmargin=*}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{8pt}{3pt}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{4pt}{2pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+
+% Etiqueta de tiempo y expositor de cada sección
+\newcommand{\expo}[2]{\hfill{\small\textit{(#1 — Expositor: #2)}}}
 
 \begin{document}
 
+% =====================================================================
+%  ENCABEZADO
+% =====================================================================
 \begin{center}
-    \textbf{\Large UNIVERSIDAD TÉCNICA ESTATAL DE QUEVEDO}\\
-    \textbf{Facultad de Ciencias de la Computación y Diseño Digital}\\
-    \textbf{Carrera de Ingeniería en Software -- Paralelo A}\\[0.4cm]
-    \textbf{\large Notas de Presentación: WebSockets, TCP y UDP aplicados a JobFinder}\\
-    \small Actividad: GA-SUM-02 / EXP-1 (Exposición 1.er Corte) -- Equipo EJPZ
+  {\large\bfseries UNIVERSIDAD TÉCNICA ESTATAL DE QUEVEDO}\\[2pt]
+  Facultad de Ciencias de la Computación y Diseño Digital\\
+  Carrera de Software \quad|\quad Paralelo: \underline{\hspace{2cm}}\\[8pt]
+  {\Large\bfseries Bolsa de Empleos para Graduados UTEQ}\\[2pt]
+  {\normalsize Análisis como sistema distribuido — Notas de presentación}\\[6pt]
+  \textbf{Actividad:} GA-SUM-02 / EXP-1\\[2pt]
+  \textbf{Equipo EJPZ:} Kenny España Vera, Jeremy Jaramillo Acosta,
+  Heiner Zambrano Ronquillo, Luis Quintero Rico\\[2pt]
+  \textbf{Fecha:} 19 de noviembre de 2026
 \end{center}
+\vspace{-4pt}\noindent\rule{\linewidth}{0.4pt}
 
-\vspace{0.2cm}
-\noindent\textbf{Integrantes:} España Vera Kenny Isaías, Jaramillo Acosta Luis Jeremy, Paca Pilataza Luis Alberto, Zambrano Ronquillo Heiner Ariel.
+% =====================================================================
+\section{Presentación del sistema \expo{1 min}{\underline{\hspace{2.5cm}}}}
+% =====================================================================
+\textbf{Qué problema resuelve.} La UTEQ no cuenta con una bolsa de empleo oficial
+y sus canales institucionales casi no ayudan a la inserción laboral. La plataforma
+centraliza en un solo sitio web las ofertas publicadas por empresas colaboradoras
+(validadas por un administrador antes de publicarse) y las ofertas importadas de
+portales externos mediante \textit{web scraping}, mostradas en una sección
+diferenciada \cite{espana2025bolsa}. La idea de conectar graduados con empleadores
+según su perfil se apoya en trabajos de recomendación recíproca de empleo para
+recién graduados \cite{ref1}.
 
-\section{Guion Desarrollado por Turnos de Exposición (12 Minutos)}
+\textbf{Quién lo usa.} Tres actores: \emph{graduados} (perfil, búsqueda,
+postulación, favoritos, alertas), \emph{empresas colaboradoras} (publican ofertas y
+gestionan postulantes) y el \emph{administrador} UTEQ (valida ofertas, administra
+usuarios, reportes y auditoría) \cite{espana2025bolsa}.
 
-\subsection{Bloque 1: Fundamentos de Transporte y Presentación del Sistema (Minutos 0:00--3:00) -- Expositor: Kenny Isaías España Vera}
-En la capa de transporte, TCP establece una sesión mediante saludo de tres vías y asegura entrega ordenada mediante acuses de recibo (ACK) y retransmisión, mientras que UDP envía datagramas independientes sin conexión ni garantía de recepción. El protocolo WebSocket (RFC 6455) opera sobre TCP iniciando con una negociación HTTP (\texttt{Upgrade: websocket}) que responde \texttt{101 Switching Protocols}, habilitando un canal \textit{full-duplex} persistente sin la sobrecarga de cabeceras del \textit{polling} tradicional.
+\textbf{A qué escala opera (cifras citadas).}
+\begin{itemize}
+  \item Contexto nacional (INEC): 20,9\,\% de jóvenes con formación universitaria
+        en subempleo y 4,1\,\% en desempleo \cite{espana2025bolsa}.
+  \item Seguimiento a graduados UTEQ 2022: solo el 51,50\,\% trabaja; el 55\,\%
+        consiguió su primer empleo por recomendación personal y apenas el 8,41\,\%
+        por bolsas de empleo \cite{espana2025bolsa}.
+  \item Escala institucional (una universidad) con meta de disponibilidad de
+        99,5\,\% durante el ciclo académico (RNF-01) \cite{espana2025bolsa}.
+        \textit{Nota para el expositor: el sistema está en fase de requisitos y
+        prototipo; no es un servicio masivo como LinkedIn o Indeed.}
+\end{itemize}
 
-\textbf{Presentación de JobFinder (Punto 1):} JobFinder resuelve la baja inserción laboral institucional de los graduados de la UTEQ, donde el seguimiento institucional reporta que solo el 51,50\,\% ejerce y apenas el 8,41\,\% consigue empleo mediante bolsas universitarias. El sistema atiende a graduados, empresas colaboradoras y administradores. \textit{Práctica 1:} ejecución de datagramas UDP en consola frente a la inspección del \textit{handshake} HTTP 101 en Chrome DevTools.
+% =====================================================================
+\section{Arquitectura \expo{2 min}{\underline{\hspace{2.5cm}}}}
+% =====================================================================
+\textbf{Componentes} (derivados de los requisitos RF-01 a RF-11 y RNF-01 a RNF-03
+\cite{espana2025bolsa}):
+\begin{enumerate}
+  \item \textbf{Cliente web responsivo} (RI-01): interfaz para graduados, empresas y
+        panel de administración.
+  \item \textbf{API de aplicación}: módulos de usuarios y autenticación (RF-01, RS-01),
+        ofertas y validación (RF-05, RF-09), postulaciones (RF-04, RF-10),
+        favoritos (RF-08) y reportes (RF-11).
+  \item \textbf{Servicio de importación de ofertas externas}: tarea programada que
+        hace \textit{scraping}, normaliza las ofertas y desactiva las que ya no
+        están vigentes (RF-07).
+  \item \textbf{Servicio de notificaciones}: envía alertas por correo cuando una
+        oferta coincide con el perfil (RF-06).
+  \item \textbf{Base de datos relacional} (modelo ER del proyecto) y
+        \textbf{registro de auditoría} (RNF-02, RP-04).
+  \item \textbf{Sistemas externos}: portales de empleo de origen y servidor de
+        correo SMTP.
+\end{enumerate}
 
-\subsection{Bloque 2: Arquitectura y Modelos de Comunicación (Minutos 3:00--6:00) -- Expositor: Luis Jeremy Jaramillo Acosta}
-\textbf{Arquitectura (Punto 2):} Elaborada en \texttt{draw.io} en tres niveles sobre TCP: (1) clientes web en Angular (\texttt{:4200}); (2) backend en Spring Boot (\texttt{:8080}) compuesto por API REST (\texttt{/api/**}), módulo WebSocket y notificaciones (actualmente STOMP/SockJS en \texttt{/ws-notificaciones} y extendido en nuestra práctica con \texttt{ws://} puro \textit{full-duplex}) e integración con la API externa JSearch; y (3) persistencia en PostgreSQL (\texttt{:5432}, base de datos \texttt{BolsaEmpleoNew} con auditoría en \texttt{seguridad.auditoria}) junto a correo SMTP (\texttt{smtp.gmail.com:587}).
+\textbf{Cómo se comunican.} El cliente habla con la API por HTTPS (petición–respuesta
+sobre TCP). La API y el servicio de importación comparten la base de datos.
+El servicio de importación consulta los portales externos de forma periódica y,
+cuando registra ofertas nuevas, deja trabajos al servicio de notificaciones, que
+los envía por SMTP de forma asíncrona. Separar los servicios permite que cada uno
+evolucione por su cuenta, siempre que se mantenga la compatibilidad de versiones
+entre ellos \cite{ref4}.
 
-\textbf{Modelos de comunicación (Punto 5):} JobFinder aplica un modelo cliente-servidor híbrido sobre TCP. Las operaciones transaccionales (registro, validación de ofertas RF-05 y postulación RF-04) usan REST síncrono; las alertas de vacantes (RF-06) y cambios de estado (RF-10) usan WebSockets asíncronos. Se descartó UDP porque la pérdida silenciosa de un paquete impediría notificar una entrevista al graduado. \textit{Práctica 2:} envío de mensaje simple (eco TCP) seguido del flujo bidireccional RF-10 (la empresa cita a entrevista y el graduado confirma asistencia en vivo).
+\begin{figure}[ht]
+\centering
+% --- Reemplazar por el diagrama propio exportado de draw.io:
+% \includegraphics[width=0.85\linewidth]{diagrama_arquitectura.png}
+\begin{tikzpicture}[
+  node distance=8mm and 16mm,
+  box/.style={draw,rounded corners,align=center,font=\footnotesize,
+              minimum width=26mm,minimum height=9mm,fill=white},
+  ext/.style={box,dashed,fill=gray!8},
+  arr/.style={-{Latex[length=2mm]},thick},
+  aarr/.style={-{Latex[length=2mm]},thick,dashed}]
+  \node[box] (cli) {Cliente web\\(graduado / empresa / admin)};
+  \node[box,right=of cli] (api) {API de aplicación\\(REST sobre HTTPS)};
+  \node[box,right=of api] (db) {Base de datos\\relacional + auditoría};
+  \node[box,below=of api] (scr) {Servicio de importación\\(scraping programado)};
+  \node[box,right=of scr] (not) {Servicio de\\notificaciones};
+  \node[ext,left=of scr] (por) {Portales externos\\de empleo};
+  \node[ext,below=of not] (smtp) {Servidor SMTP};
+  \draw[arr] (cli) -- node[above,font=\scriptsize]{síncrono} (api);
+  \draw[arr] (api) -- (db);
+  \draw[arr] (scr) -- (db);
+  \draw[aarr] (scr) -- node[above,font=\scriptsize]{periódico} (por);
+  \draw[aarr] (scr) -- node[above,font=\scriptsize]{asíncrono} (not);
+  \draw[aarr] (not) -- (smtp);
+\end{tikzpicture}
+\caption{Arquitectura lógica propuesta (línea continua: síncrono; discontinua: asíncrono/periódico).}
+\label{fig:arq}
+\end{figure}
 
-\subsection{Bloque 3: Transparencias de Distribución y Teoremas CAP/PACELC (Minutos 6:00--9:00) -- Expositor: Heiner Ariel Zambrano Ronquillo}
-\textbf{Transparencias (Punto 3):} JobFinder ofrece transparencia de acceso y ubicación al unificar los servicios detrás de rutas lógicas sin exponer puertos internos, y transparencia de concurrencia para múltiples sesiones WebSocket simultáneas. No garantiza transparencia total de fallos ante desconexiones abruptas de red móvil ni migración automática de sesiones en memoria.
+% =====================================================================
+%  REFERENCIAS (IEEE)
+% =====================================================================
+\renewcommand{\refname}{Referencias}
+\bibliographystyle{IEEEtran}
+\bibliography{referencias}
 
-\textbf{CAP y PACELC (Punto 4):} Ante una partición de red (\textbf{P}) hacia PostgreSQL, el sistema sacrifica disponibilidad de escritura y prioriza \textbf{Consistencia (C)} para evitar postulaciones duplicadas. Sin partición (\textbf{E}), PACELC equilibra baja \textbf{Latencia (L)} en notificaciones WebSocket y \textbf{Consistencia (C)} en transacciones relacionales. \textit{Práctica 3:} simulación de partición de base de datos con bloqueo controlado de escrituras.
-
-\subsection{Bloque 4: Tolerancia a Fallos, Comparativa y Lecciones PFC (Minutos 9:00--12:00) -- Expositor: Luis Alberto Paca Pilataza}
-\textbf{Tolerancia a fallos (Punto 6):} Se detectan enlaces caídos mediante tramas de control \texttt{PING/PONG} cada 5 segundos y \textit{timeouts} TCP, recuperando la sesión cliente mediante reconexión escalonada con \textit{backoff} exponencial (1\,s, 2\,s, 4\,s, 8\,s). Aplicando el análisis de causas raíz de FORM-AC-01 (caída de Facebook de 2021), se evita el acoplamiento entre procesos externos y el bucle principal de eventos.
-
-\textbf{Comparación y lecciones PFC (Puntos 7 y 8):} Frente a LinkedIn y CompuTrabajo, JobFinder aporta validación administrativa previa (RF-05), asumiendo como compromiso (\textit{trade-off}) mayor consumo de RAM por mantener sockets TCP abiertos frente a APIs \textit{stateless}. Para la entrega \texttt{TA-PFC-E1} se aislará la importación externa (RF-07) en un contenedor Docker independiente con colas asíncronas. \textit{Práctica 4:} detención abrupta del servidor (\texttt{Ctrl+C}) y reconexión automática del cliente.
 
 \end{document}
