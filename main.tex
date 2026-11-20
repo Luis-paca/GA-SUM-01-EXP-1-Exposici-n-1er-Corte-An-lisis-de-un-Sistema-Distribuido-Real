@@ -1,6 +1,6 @@
 % =====================================================================
 %  Notas de presentación — GA-SUM-02 / EXP-1
-%  Parte 2 — Heiner: parte 1 + secciones 3 y 4
+%  Parte 3: partes 1-2 + secciones 5 y 6
 %  Sistema analizado: Bolsa de Empleos para Graduados UTEQ
 %  Compilar: pdflatex -> bibtex -> pdflatex -> pdflatex
 % =====================================================================
@@ -47,7 +47,7 @@
   {\normalsize Análisis como sistema distribuido — Notas de presentación}\\[6pt]
   \textbf{Actividad:} GA-SUM-02 / EXP-1\\[2pt]
   \textbf{Equipo EJPZ:} Kenny España Vera, Jeremy Jaramillo Acosta,
-  Heiner Zambrano Ronquillo, Luis Quintero Rico\\[2pt]
+  Heiner Zambrano Ronquillo, Luis Alberto Paca\\[2pt]
   \textbf{Fecha:} 19 de noviembre de 2026
 \end{center}
 \vspace{-4pt}\noindent\rule{\linewidth}{0.4pt}
@@ -214,6 +214,89 @@ Catálogo de ofertas externas y alertas
         traer información expirada; eso confirma que el catálogo externo nunca es
         fuertemente consistente \cite{espana2025bolsa}.
 \end{itemize}
+
+% =====================================================================
+\section{Modelos de comunicación \expo{1,5 min}{\underline{\hspace{2.5cm}}}}
+% =====================================================================
+\begin{itemize}
+  \item \textbf{Arquitectura:} \emph{cliente--servidor}. No hay comunicación
+        P2P entre usuarios; toda interacción pasa por la API.
+  \item \textbf{Sincrónico:} búsqueda, postulación, validación y reportes usan
+        petición--respuesta HTTP/REST sobre TCP. TCP garantiza entrega ordenada
+        y fiable, pero su rendimiento depende del ancho de banda y del retardo de la
+        red \cite{guo2025tcpudp}; en Wi-Fi, incluso los protocolos de seguridad
+        (WPA2/WPA3) afectan el \textit{throughput} de TCP y UDP \cite{ref2}.
+  \item \textbf{Asincrónico:} la importación de ofertas (tarea programada) y las
+        alertas por correo (RF-06) no bloquean al usuario. La literatura sobre
+        protocolos de mensajería (MQTT, AMQP, entre otros) resume cuándo conviene
+        desacoplar emisor y receptor \cite{wytrebowicz2021messaging,bayilmis2022survey}.
+  \item \textbf{Sockets / RPC / mensajería:} REST (estilo RPC sobre HTTP) para el
+        núcleo; mensajería/cola para notificaciones. Para alertas \emph{dentro de la
+        interfaz} (RI-05) se propone \textbf{WebSocket} (RFC 6455): canal
+        \emph{full-duplex} sobre una conexión TCP persistente, con menor latencia
+        que el sondeo HTTP \cite{ref3,mitrovic2023websocket}.
+  \item \textbf{Transporte a futuro:} QUIC (sobre UDP) evita el bloqueo de
+        cabecera de línea de TCP; las mediciones muestran ventajas y costos según
+        el enlace y la implementación \cite{jeddou2023tcpquic,kumar2025kquic}.
+        Por ahora no es requisito.
+\end{itemize}
+\textbf{Por qué este modelo:} el alcance es académico e institucional. HTTP/REST
+funciona en cualquier navegador sin instalar nada (RI-01) y es más fácil de auditar
+(RNF-02). Además, la asincronía queda solo donde hay esperas largas o dependencias
+externas (scraping y correo).
+
+% =====================================================================
+\section{Tolerancia a fallos \expo{2 min}{\underline{\hspace{2.5cm}}}}
+% =====================================================================
+\textbf{Qué fallos soporta:}
+\begin{itemize}
+  \item Portal externo caído o con estructura HTML cambiada durante el \textit{scraping}.
+  \item Ofertas externas expiradas o ya cubiertas en el sitio de origen.
+  \item Fallo temporal del servidor de correo (alertas pendientes).
+  \item Caída de la conexión en tiempo real del navegador (WebSocket).
+  \item Errores de usuario al registrar datos (RU-07).
+\end{itemize}
+\textbf{Cómo los detecta:} registro de auditoría de acciones críticas (RNF-02,
+RP-04), estado de cada ejecución de importación (éxito/error y número de ofertas),
+comprobación de vigencia en cada sincronización (RF-07), \textit{timeouts} en las
+llamadas a portales y SMTP, y validaciones en formularios.
+
+\textbf{Cómo se recupera:}
+\begin{itemize}
+  \item \textbf{Scraping:} reintento en la siguiente ejecución programada; las ofertas
+        que ya no están vigentes se desactivan automáticamente (RF-07).
+  \item \textbf{Correo:} las alertas quedan en cola y se reenvían cuando el SMTP vuelve.
+  \item \textbf{Tiempo real:} si se pierde el WebSocket, el cliente se reconecta y,
+        si no puede, cae a \textit{long polling} \cite{mitrovic2023websocket}.
+  \item \textbf{Evolución sin caídas:} versionar la API y los servicios manteniendo
+        compatibilidad hacia atrás, como plantea la orquestación de versiones para
+        microservicios resilientes \cite{ref4}.
+  \item \textbf{Datos:} respaldos periódicos de la base de datos para cumplir el
+        99,5\,\% de disponibilidad (RNF-01).
+\end{itemize}
+
+\textbf{Incidente documentado y análisis de causas raíz (FORM-AC-01).}
+% TODO: ajustar las columnas al formato oficial FORM-AC-01 del docente.
+\textit{Caso:} riesgo de publicar ofertas externas expiradas o ya adquiridas.
+Lo identificó Suárez en su sistema de \textit{web mining} y lo ratificó el decano
+en las entrevistas \cite{espana2025bolsa}.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{>{\bfseries\raggedright\arraybackslash}p{3.2cm}
+                             >{\raggedright\arraybackslash}X}
+\toprule
+Problema & El graduado ve y postula a una oferta que ya no existe en el portal de origen.\\
+Causa inmediata & El catálogo local solo se actualiza en cada ejecución del \textit{scraping}.\\
+Causa raíz & El sistema no controla los datos externos; la consistencia con el origen
+             es eventual por diseño (PA/EL, sección 4).\\
+Acción correctiva & Sincronización que desactiva o elimina las ofertas no vigentes (RF-07).\\
+Acción preventiva & Etiqueta ``Ofertas de Sitios Externos'', fecha de última verificación
+                    visible y prioridad a las ofertas validadas de empresas colaboradoras
+                    (RF-05).\\
+\bottomrule
+\end{tabularx}
+\end{center}
 
 % =====================================================================
 %  REFERENCIAS (IEEE)
