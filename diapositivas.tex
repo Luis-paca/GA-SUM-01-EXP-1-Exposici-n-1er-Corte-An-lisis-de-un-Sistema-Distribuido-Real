@@ -1,0 +1,153 @@
+% =====================================================================
+%  Diapositivas Beamer — GA-SUM-02 / EXP-1
+%  Sistema analizado: JobFinder — Bolsa de Empleos para Graduados UTEQ
+%  Compilar: pdflatex -> biber -> pdflatex -> pdflatex
+% =====================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot,es-tabla]{babel}
+\usepackage{csquotes}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{referencias.bib}
+
+% Evita cambio de tipografía (serif/small-caps) en siglas como DOI en biblatex
+\renewcommand*{\mkbibacro}[1]{#1}
+
+% Tema y paleta visual (bloques azul / naranja sobre fondo limpio)
+\usetheme{Madrid}
+\usecolortheme{default}
+\definecolor{uteqblue}{RGB}{18,68,196}
+\definecolor{uteqdark}{RGB}{24,38,66}
+\definecolor{uteqorange}{RGB}{214,122,12}
+\definecolor{uteqbg}{RGB}{246,248,252}
+
+\setbeamercolor{title}{fg=white,bg=uteqdark}
+\setbeamercolor{frametitle}{fg=uteqdark,bg=white}
+\setbeamercolor{framesubtitle}{fg=uteqdark}
+\setbeamercolor{structure}{fg=uteqblue}
+\setbeamercolor{block title}{fg=white,bg=uteqblue}
+\setbeamercolor{block body}{fg=black,bg=uteqbg}
+\setbeamercolor{block title alerted}{fg=white,bg=uteqorange}
+\setbeamercolor{block body alerted}{fg=black,bg=uteqbg}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamertemplate{frametitle continuation}{}
+
+\title[GA-SUM-02 / EXP-1]{JobFinder: Bolsa de Empleos para Graduados UTEQ}
+\subtitle{Análisis de un Sistema Distribuido Real}
+\author[Equipo EJPZ]{\texorpdfstring{Kenny España Vera \quad\textbullet\quad Jeremy Jaramillo Acosta\\[3pt] Luis Paca Pilataza \quad\textbullet\quad Heiner Zambrano Ronquillo}{Kenny España Vera, Jeremy Jaramillo Acosta, Luis Paca Pilataza, Heiner Zambrano Ronquillo}}
+\institute[UTEQ]{Universidad Técnica Estatal de Quevedo\\Ingeniería en Software — Aplicaciones Distribuidas}
+\date{Noviembre de 2026}
+
+\begin{document}
+
+% ---------------------------------------------------------------------
+% PORTADA
+% ---------------------------------------------------------------------
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% ---------------------------------------------------------------------
+% SECCIONES 1 Y 2 (Pendiente de completar por el integrante asignado)
+% ---------------------------------------------------------------------
+% \begin{frame}{1. Presentación del Sistema}{...} ... \end{frame}
+% \begin{frame}{2. Arquitectura del Sistema}{...} ... \end{frame}
+
+% ---------------------------------------------------------------------
+% SECCIÓN 3 — TRANSPARENCIAS DE DISTRIBUCIÓN (HEINER ZAMBRANO)
+% ---------------------------------------------------------------------
+\begin{frame}{3. Transparencias de Distribución (Heiner Zambrano)}
+\framesubtitle{Propiedades garantizadas y limitaciones en JobFinder (1,5 min)}
+\vspace{-4pt}
+\begin{columns}[T,totalwidth=\textwidth]
+  \begin{column}{0.485\textwidth}
+    \begin{block}{Acceso Unificado (SÍ)}
+      Rutas \texttt{/api/**} y \texttt{/ws-notificaciones} unifican ofertas locales y externas en un solo buscador (RF-03).
+    \end{block}
+    \vspace{4pt}
+    \begin{block}{Concurrencia y Fallos Parciales (SÍ)}
+      Sesiones WebSocket y postulaciones paralelas en \texttt{:8080} (ACID en BD); si cae un portal externo, el \textit{scraping} reintenta (RF-07).
+    \end{block}
+  \end{column}
+  \begin{column}{0.485\textwidth}
+    \begin{block}{Ubicación Oculta (SÍ)}
+      Puertos internos de PostgreSQL (\texttt{:5432}), backend (\texttt{:8080}) y servidor SMTP quedan invisibles tras el dominio web.
+    \end{block}
+    \vspace{4pt}
+    \begin{alertblock}{Limitaciones — NO Garantizadas}
+      \textbf{Origen/tiempo:} etiqueta ``Sitios Externos''; validación pendiente (RF-05).\\
+      \textbf{Fallos visibles:} cortes en red móvil (reconexión WS) y fallos SMTP.
+    \end{alertblock}
+  \end{column}
+\end{columns}
+
+\vspace{7pt}
+\footnotesize
+\textbf{Demo en vivo:} \texttt{Get-NetTCPConnection -LocalPort 8080 -State Established} (concurrencia TCP real).
+\end{frame}
+
+% ---------------------------------------------------------------------
+% SECCIÓN 4 — CAP Y PACELC (HEINER ZAMBRANO)
+% ---------------------------------------------------------------------
+\begin{frame}{4. Teoremas CAP y PACELC (Heiner Zambrano)}
+\framesubtitle{Compromiso entre Consistencia, Disponibilidad y Latencia \cite{ref5} (2 min)}
+\vspace{-5pt}
+\begin{columns}[T,totalwidth=\textwidth]
+  \begin{column}{0.485\textwidth}
+    \begin{block}{Núcleo Transaccional — PC/EC}
+      Ante partición con \texttt{BolsaEmpleoNew} (\texttt{:5432}), bloquea escrituras para evitar postulaciones duplicadas o vacantes sin validar (RF-04, RF-05).
+    \end{block}
+  \end{column}
+  \begin{column}{0.485\textwidth}
+    \begin{alertblock}{Catálogo Externo y Alertas — PA/EL}
+      Prioriza disponibilidad si cae un portal externo y baja latencia en alertas WebSocket; consistencia eventual por sincronización (RF-07).
+    \end{alertblock}
+  \end{column}
+\end{columns}
+
+\vspace{6pt}
+\scriptsize
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.4cm}
+                             >{\raggedright\arraybackslash}X
+                             >{\raggedright\arraybackslash}X
+                             >{\centering\arraybackslash}p{1.5cm}}
+\toprule
+\textbf{Tipo de dato} & \textbf{Con partición (P)} & \textbf{Sin partición (E)} & \textbf{PACELC} \\
+\midrule
+Cuentas, postulaciones, validación y auditoría & \textbf{C:} rechaza escrituras antes que corromper integridad & \textbf{C:} transacciones ACID en PostgreSQL & \textbf{PC/EC} \\
+\addlinespace[4pt]
+Catálogo externo y alertas WebSocket & \textbf{A:} mantiene últimas ofertas importadas disponibles & \textbf{L:} baja latencia / sincronización periódica & \textbf{PA/EL} \\
+\bottomrule
+\end{tabularx}
+
+\vspace{5pt}
+\footnotesize
+\textbf{Demo en vivo:} \texttt{net stop postgresql-x64-18} (\texttt{:5432}) $\rightarrow$ partición simulada y \texttt{BLOQUEO CAP}. \textit{Escala multi-sede futura: consistencia causal vía actores \cite{ref5}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+% SECCIONES 5 A 8 (Pendiente de completar por los demás integrantes)
+% ---------------------------------------------------------------------
+% \begin{frame}{5. Modelos de Comunicación}{...} ... \end{frame}
+% \begin{frame}{6. Tolerancia a Fallos}{...} ... \end{frame}
+% \begin{frame}{7. Comparación y Postura Crítica}{...} ... \end{frame}
+% \begin{frame}{8. Lecciones para el PFC y Conclusiones}{...} ... \end{frame}
+
+% ---------------------------------------------------------------------
+% REFERENCIAS (IEEE con biblatex)
+% ---------------------------------------------------------------------
+\begin{frame}[allowframebreaks]{Referencias}
+  \footnotesize
+  \printbibliography[heading=none]
+\end{frame}
+
+\end{document}

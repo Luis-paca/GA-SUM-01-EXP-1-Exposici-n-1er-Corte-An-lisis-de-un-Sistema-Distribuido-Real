@@ -142,17 +142,20 @@ entre ellos \cite{ref4}.
 \end{figure}
 
 % =====================================================================
-\section{Transparencias de distribución \expo{1,5 min}{\underline{\hspace{2.5cm}}}}
+\section{Transparencias de distribución \expo{1,5 min}{Heiner Zambrano}}
 % =====================================================================
 \textbf{Las que SÍ ofrece:}
 \begin{itemize}
-  \item \textbf{Acceso:} el graduado usa la misma interfaz para buscar ofertas
-        propias y externas; no sabe si el dato viene de la base local o de un
-        proceso de importación. \textit{Ej.:} un solo buscador con filtros (RF-03).
-  \item \textbf{Ubicación:} el usuario entra por un dominio web y no conoce dónde
-        están alojados la API, la base de datos o el servicio de correo.
-  \item \textbf{Concurrencia:} muchos graduados pueden postular a la misma oferta
-        a la vez; la base de datos serializa las escrituras sin que el usuario lo note.
+  \item \textbf{Acceso:} mediante rutas lógicas unificadas (\texttt{/api/**} y
+        \texttt{/ws-notificaciones}), el graduado usa la misma interfaz para buscar
+        ofertas propias y externas; no sabe si el dato viene de la base local o de
+        un proceso de importación. \textit{Ej.:} un solo buscador con filtros (RF-03).
+  \item \textbf{Ubicación:} el usuario entra por un dominio web y desconoce los
+        puertos internos del backend (\texttt{:8080}), la base de datos PostgreSQL
+        (\texttt{:5432}) o el servidor SMTP.
+  \item \textbf{Concurrencia:} múltiples sesiones WebSocket y postulaciones operan
+        en paralelo sobre \texttt{:8080} sin interferencia (verificable en vivo con
+        \texttt{Get-NetTCPConnection}); PostgreSQL serializa las escrituras.
   \item \textbf{Fallos (parcial):} si un portal externo no responde, la importación
         se reintenta en la siguiente ejecución y el resto del sistema sigue funcionando.
 \end{itemize}
@@ -164,16 +167,17 @@ entre ellos \cite{ref4}.
   \item \textbf{Transparencia de tiempo/replicación:} una oferta de empresa no aparece
         al instante; queda \emph{pendiente} hasta que el administrador la valida (RF-05),
         y las externas se actualizan solo en cada sincronización (RF-07).
-  \item \textbf{Fallos del correo:} si el SMTP falla, la alerta llega tarde o no llega,
-        y el usuario sí lo percibe.
+  \item \textbf{Fallos visibles (red móvil y correo):} los cortes abruptos en red
+        móvil exigen reconexión visible del cliente WebSocket, y si el SMTP falla la
+        alerta llega tarde o no llega.
 \end{itemize}
 
 % =====================================================================
-\section{CAP y PACELC \expo{2 min}{\underline{\hspace{2.5cm}}}}
+\section{CAP y PACELC \expo{2 min}{Heiner Zambrano}}
 % =====================================================================
 CAP obliga a elegir entre consistencia (C) y disponibilidad (A) cuando hay una
 partición de red (P). PACELC agrega que, \emph{aun sin partición}, se elige entre
-latencia (L) y consistencia (C) \cite{abadi2012pacelc}. La plataforma no toma una
+latencia (L) y consistencia (C) \cite{ref5}. La plataforma no toma una
 sola decisión: depende del tipo de dato.
 
 \begin{center}
@@ -185,31 +189,37 @@ sola decisión: depende del tipo de dato.
 \textbf{Dato} & \textbf{Con partición (C o A)} & \textbf{Sin partición (L o C)}\\
 \midrule
 Cuentas, postulaciones, validación de ofertas, auditoría
-  & \textbf{C}: es mejor rechazar la operación que registrar una postulación duplicada
-    o publicar una oferta no validada (RF-04, RF-05, RNF-02).
-  & \textbf{C}: transacciones sobre una base relacional; se acepta algo más de
+  & \textbf{C}: ante pérdida de enlace con \texttt{BolsaEmpleoNew} (\texttt{:5432}),
+    se bloquean escrituras antes que registrar una postulación duplicada o publicar
+    una oferta no validada (RF-04, RF-05, RNF-02).
+  & \textbf{C}: transacciones ACID sobre PostgreSQL; se acepta algo más de
     latencia a cambio de integridad. \\
 \midrule
-Catálogo de ofertas externas y alertas
+Catálogo de ofertas externas y alertas WebSocket
   & \textbf{A}: se siguen mostrando las últimas ofertas importadas aunque el
     portal de origen no responda.
-  & \textbf{L}: la sincronización es periódica (RF-07), así que el catálogo es
-    \emph{eventualmente consistente} con el sitio original. \\
+  & \textbf{L}: baja latencia en alertas WebSocket y sincronización periódica
+    (RF-07), con consistencia eventual respecto al sitio original. \\
 \bottomrule
 \end{tabularx}
 \end{center}
 
-\textbf{Clasificación:} núcleo transaccional \textbf{PC/EC}; catálogo externo
-\textbf{PA/EL}.
+\textbf{Clasificación:} núcleo transaccional \textbf{PC/EC}; catálogo externo y
+alertas \textbf{PA/EL}. \textit{Verificación en vivo:} al detener el servicio
+\texttt{postgresql-x64-18} (\texttt{:5432}), el backend (\texttt{:8080}) bloquea
+las escrituras de postulación (bloqueo CAP).
 
 \textbf{Evidencia:}
 \begin{itemize}
-  \item Abadi muestra que la elección latencia--consistencia en operación normal
-        tiene tanto peso en el diseño como la elección CAP \cite{abadi2012pacelc}.
+  \item Bajo el marco CAP/PACELC analizado en la literatura reciente, la elección
+        latencia--consistencia en operación normal tiene tanto peso en el diseño
+        como la elección ante particiones \cite{ref5}.
   \item Existen puntos intermedios: Camilleri \emph{et al.} implementan un DBMS
-        distribuido escalable horizontalmente con \emph{consistencia causal} usando
-        el modelo de actores \cite{ref5}. Sería una opción si el sistema necesitara
-        replicar datos entre sedes.
+        distribuido escalable horizontalmente sobre un RDBMS con \emph{consistencia
+        causal+} mediante el modelo de actores; en línea con PACELC, minimiza la
+        latencia en operación normal tolerando fallos de nodos y particiones
+        \cite{ref5} (pág.~6, ver Anexo~B). Sería una opción viable si JobFinder
+        necesitara replicar PostgreSQL entre sedes.
   \item En el propio proyecto, el decano advirtió que el \textit{scraping} puede
         traer información expirada; eso confirma que el catálogo externo nunca es
         fuertemente consistente \cite{espana2025bolsa}.
@@ -326,7 +336,7 @@ Acción preventiva & Etiqueta ``Ofertas de Sitios Externos'', fecha de última v
 \midrule
 Kenny España Vera        & & \\
 Jeremy Jaramillo Acosta  & & \\
-Heiner Zambrano Ronquillo& & \\
+Heiner Zambrano Ronquillo& Secciones 3 y 4 (Transparencias de distribución; CAP y PACELC) & Redacción de secciones 3 y 4 en notas, diapositivas Beamer de ambas secciones, referencias bibliográficas, captura subrayada de Camilleri \emph{et al.} (pág.~6) y demo en vivo (TCP :8080 y bloqueo CAP con PostgreSQL :5432). \\
 Luis Paca Pilataza       & & \\
 \bottomrule
 \end{tabularx}
@@ -353,6 +363,12 @@ Luis Paca Pilataza       & & \\
 \section{Foto del boceto a mano (con nombres y fecha)}
 % \includegraphics[width=\linewidth]{boceto.jpg}
 
-\section{Capturas de los artículos anotados (opcional)}
+\section{Capturas de los artículos anotados}
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[height=0.72\textheight,keepaspectratio]{evidencias/captura_camilleri2024_heiner.png}
+  \caption{Fragmento subrayado de Camilleri \emph{et al.} (2024) \cite{ref5}, \textbf{pág.~6 de 41} (Heiner Zambrano). El pasaje respalda la Sección~4 (CAP y PACELC): muestra cómo el middleware \textit{Thespis} sobre un RDBMS logra consistencia causal+, disponibilidad y tolerancia a particiones, reduciendo la latencia en operación normal.}
+  \label{fig:captura-camilleri}
+\end{figure}
 
 \end{document}
