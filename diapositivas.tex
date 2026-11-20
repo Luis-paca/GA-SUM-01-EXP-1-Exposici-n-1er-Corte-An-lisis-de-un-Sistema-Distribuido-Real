@@ -66,72 +66,54 @@
 % SECCIÓN 3 — TRANSPARENCIAS DE DISTRIBUCIÓN (HEINER ZAMBRANO)
 % ---------------------------------------------------------------------
 \begin{frame}{3. Transparencias de Distribución (Heiner Zambrano)}
-\framesubtitle{Propiedades garantizadas y limitaciones en JobFinder (1,5 min)}
-\vspace{-4pt}
+\framesubtitle{Propiedades en JobFinder (1,5 min)}
+\vspace{2pt}
 \begin{columns}[T,totalwidth=\textwidth]
   \begin{column}{0.485\textwidth}
-    \begin{block}{Acceso Unificado (SÍ)}
-      Rutas \texttt{/api/**} y \texttt{/ws-notificaciones} unifican ofertas locales y externas en un solo buscador (RF-03).
-    \end{block}
-    \vspace{4pt}
-    \begin{block}{Concurrencia y Fallos Parciales (SÍ)}
-      Sesiones WebSocket y postulaciones paralelas en \texttt{:8080} (ACID en BD); si cae un portal externo, el \textit{scraping} reintenta (RF-07).
+    \begin{block}{Garantizadas (SÍ)}
+      \begin{itemize}\setlength{\itemsep}{6pt}
+        \item \textbf{Acceso:} \texttt{/api/**}, \texttt{/ws-notificaciones} (RF-03)
+        \item \textbf{Ubicación:} oculta \texttt{:8080}, \texttt{:5432} y SMTP
+        \item \textbf{Concurrencia:} WS paralelos + ACID en BD
+        \item \textbf{Fallos (parcial):} reintento \textit{scraping} (RF-07)
+      \end{itemize}
     \end{block}
   \end{column}
   \begin{column}{0.485\textwidth}
-    \begin{block}{Ubicación Oculta (SÍ)}
-      Puertos internos de PostgreSQL (\texttt{:5432}), backend (\texttt{:8080}) y servidor SMTP quedan invisibles tras el dominio web.
-    \end{block}
-    \vspace{4pt}
-    \begin{alertblock}{Limitaciones — NO Garantizadas}
-      \textbf{Origen/tiempo:} etiqueta ``Sitios Externos''; validación pendiente (RF-05).\\
-      \textbf{Fallos visibles:} cortes en red móvil (reconexión WS) y fallos SMTP.
+    \begin{alertblock}{Limitaciones (NO)}
+      \begin{itemize}\setlength{\itemsep}{6pt}
+        \item \textbf{Origen:} etiqueta ``Sitios Externos''
+        \item \textbf{Tiempo:} validación pendiente (RF-05) y sync periódica (RF-07)
+        \item \textbf{Fallos visibles:} cortes en red móvil (reconexión WS) y SMTP
+      \end{itemize}
     \end{alertblock}
   \end{column}
 \end{columns}
-
-\vspace{7pt}
-\footnotesize
-\textbf{Demo en vivo:} \texttt{Get-NetTCPConnection -LocalPort 8080 -State Established} (concurrencia TCP real).
 \end{frame}
 
 % ---------------------------------------------------------------------
 % SECCIÓN 4 — CAP Y PACELC (HEINER ZAMBRANO)
 % ---------------------------------------------------------------------
 \begin{frame}{4. Teoremas CAP y PACELC (Heiner Zambrano)}
-\framesubtitle{Compromiso entre Consistencia, Disponibilidad y Latencia \cite{ref5} (2 min)}
-\vspace{-5pt}
+\framesubtitle{Compromiso entre Consistencia y Latencia \cite{ref5}}
+\vspace{4pt}
 \begin{columns}[T,totalwidth=\textwidth]
   \begin{column}{0.485\textwidth}
-    \begin{block}{Núcleo Transaccional — PC/EC}
-      Ante partición con \texttt{BolsaEmpleoNew} (\texttt{:5432}), bloquea escrituras para evitar postulaciones duplicadas o vacantes sin validar (RF-04, RF-05).
+    \begin{block}{CP — Con Partición de Red (P)}
+      \textbf{Prioridad: Consistencia (C)}\\[6pt]
+      Ante pérdida de enlace con \texttt{BolsaEmpleoNew}, se bloquean escrituras de postulación para evitar duplicados o vacantes sin validar.
     \end{block}
   \end{column}
   \begin{column}{0.485\textwidth}
-    \begin{alertblock}{Catálogo Externo y Alertas — PA/EL}
-      Prioriza disponibilidad si cae un portal externo y baja latencia en alertas WebSocket; consistencia eventual por sincronización (RF-07).
+    \begin{alertblock}{EL / EC — Operación Normal (E)}
+      \textbf{Prioridad: Latencia (L) y Consistencia (C)}\\[6pt]
+      Sin particiones, prioriza baja latencia en alertas WebSocket (\textbf{PA/EL}) e integridad ACID en PostgreSQL (\textbf{PC/EC}).
     \end{alertblock}
   \end{column}
 \end{columns}
 
-\vspace{6pt}
-\scriptsize
-\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.4cm}
-                             >{\raggedright\arraybackslash}X
-                             >{\raggedright\arraybackslash}X
-                             >{\centering\arraybackslash}p{1.5cm}}
-\toprule
-\textbf{Tipo de dato} & \textbf{Con partición (P)} & \textbf{Sin partición (E)} & \textbf{PACELC} \\
-\midrule
-Cuentas, postulaciones, validación y auditoría & \textbf{C:} rechaza escrituras antes que corromper integridad & \textbf{C:} transacciones ACID en PostgreSQL & \textbf{PC/EC} \\
-\addlinespace[4pt]
-Catálogo externo y alertas WebSocket & \textbf{A:} mantiene últimas ofertas importadas disponibles & \textbf{L:} baja latencia / sincronización periódica & \textbf{PA/EL} \\
-\bottomrule
-\end{tabularx}
-
-\vspace{5pt}
-\footnotesize
-\textbf{Demo en vivo:} \texttt{net stop postgresql-x64-18} (\texttt{:5432}) $\rightarrow$ partición simulada y \texttt{BLOQUEO CAP}. \textit{Escala multi-sede futura: consistencia causal vía actores \cite{ref5}.}
+\vspace{14pt}
+\textbf{Práctica en vivo:} Partición hacia PostgreSQL (\texttt{:5432}) bloqueando escrituras (\texttt{BLOQUEO CAP}).
 \end{frame}
 
 % ---------------------------------------------------------------------
