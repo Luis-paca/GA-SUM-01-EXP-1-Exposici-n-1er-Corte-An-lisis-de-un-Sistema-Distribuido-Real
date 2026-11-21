@@ -309,19 +309,99 @@ Acción preventiva & Etiqueta ``Ofertas de Sitios Externos'', fecha de última v
 \end{center}
 
 % =====================================================================
-\section{Comparación y postura crítica \expo{1 min}{\underline{\hspace{2.5cm}}}}
+\section{Comparación y postura crítica \expo{1 min}{Jeremy Jaramillo}}
 % =====================================================================
-% Pendiente: otro sistema real, fortalezas, limitaciones, trade-offs.
+Para valorar el diseño de JobFinder se lo contrasta con \textbf{LinkedIn},
+plataforma global que resuelve el mismo problema de intermediación laboral pero
+a una escala muy superior.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{>{\bfseries\raggedright\arraybackslash}p{2.9cm}
+                             >{\raggedright\arraybackslash}X
+                             >{\raggedright\arraybackslash}X}
+\toprule
+Criterio & \textbf{JobFinder (UTEQ)} & \textbf{LinkedIn} \\
+\midrule
+Arquitectura y escala
+  & Backend centralizado (\texttt{:8080}) sobre una instancia PostgreSQL (\texttt{:5432}), orientado a una sola universidad.
+  & Microservicios multirregión, bases de datos replicadas y colas distribuidas de eventos a escala global. \\
+\midrule
+CAP / PACELC
+  & \textbf{PC/EC} en cuentas, validación y postulaciones; \textbf{PA/EL} en catálogo externo y alertas WebSocket.
+  & \textbf{PA/EL} en el \textit{feed} y buscador (consistencia eventual para baja latencia) y controles estrictos en operaciones puntuales. \\
+\midrule
+Validación y búsqueda
+  & Revisión manual previa por el administrador (RF-05) y filtros estructurados sobre la base local.
+  & Moderación automatizada y motores de recomendación semántica y social, enfoque estudiado para graduados en \cite{ref1}. \\
+\midrule
+Tolerancia a fallos
+  & Punto único de fallo en PostgreSQL (\texttt{:5432}) y en el nodo del backend (\texttt{:8080}).
+  & Replicación entre centros de datos; absorbe caídas de nodos sin interrumpir el acceso general. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Fortalezas:} la validación administrativa reduce ofertas falsas para los
+graduados, el costo de operación es bajo para una universidad pública y las
+postulaciones mantienen integridad ACID inmediata.
+\textbf{Limitaciones:} el proceso de \textit{scraping} comparte la misma base
+PostgreSQL que el tráfico interactivo, no existe réplica en caliente ante caídas
+del nodo de BD y la coincidencia perfil--vacante sigue siendo básica.
+\textbf{Postura crítica (\textit{trade-offs}):} imitar la infraestructura
+multirregión de LinkedIn sería sobreingeniería para la UTEQ. El compromiso
+correcto es mantener la consistencia fuerte (\textbf{PC/EC}) en el núcleo
+transaccional, pero separar la ingesta externa y las notificaciones en servicios
+desacoplados \cite{ref4,wytrebowicz2021messaging}.
 
 % =====================================================================
-\section{Lecciones para el PFC y conclusiones \expo{1 min}{\underline{\hspace{2.5cm}}}}
+\section{Lecciones para el PFC y conclusiones \expo{1 min}{Jeremy Jaramillo}}
 % =====================================================================
-% Pendiente: decisiones para el PFC y conclusiones concretas.
+\textbf{Decisiones que aplicaremos en el PFC:}
+\begin{itemize}
+  \item \textbf{Microservicios detrás de un \textit{API Gateway}:} separar
+        \texttt{Perfiles}, \texttt{Ofertas y Validación}, \texttt{Postulaciones},
+        \texttt{Ingesta Externa} y \texttt{Notificaciones} para que un bloqueo de
+        I/O en el \textit{scraping} no degrade las postulaciones activas,
+        manteniendo compatibilidad entre versiones de contratos \cite{ref4}.
+  \item \textbf{Comunicación diferenciada:} usar gRPC para llamadas internas
+        síncronas del núcleo y mensajería asíncrona (AMQP) para alertas e ingesta,
+        desacoplando emisor y receptor frente a servicios externos lentos o caídos
+        \cite{wytrebowicz2021messaging}.
+  \item \textbf{Modelo CAP/PACELC y verificación:} conservar \textbf{PC/EC} en
+        PostgreSQL para el núcleo y \textbf{PA/EL} solo en el catálogo importado;
+        si el proyecto escalara entre sedes, se evaluaría consistencia causal+
+        como en \cite{ref5}. Cada mitigación se verificará mediante pruebas de
+        corte controlado de \texttt{:5432} y reconexión WebSocket \cite{ref3}.
+\end{itemize}
+
+\textbf{Conclusiones:} un mismo sistema distribuido real combina decisiones
+opuestas de consistencia según el valor del dato (\textbf{PC/EC} en postulaciones
+y auditoría frente a \textbf{PA/EL} en ofertas importadas). En JobFinder el
+principal riesgo técnico no es el volumen de usuarios, sino el acoplamiento entre
+dependencias externas inestables (\textit{scraping} y SMTP) y la base relacional,
+problema que guía directamente la arquitectura del PFC.
 
 % =====================================================================
 \section{Ejemplo del entorno propio}
 % =====================================================================
-% Pendiente: sistema que usan en persona, ligado a un concepto.
+\begin{itemize}
+  \item \textbf{SGA de la UTEQ en matriculación y pagos en \textit{De Una} /
+        Banco Pichincha (PC/EC):} en los cierres de matrícula del SGA, cuando
+        cientos de estudiantes solicitan el mismo paralelo a la vez, el sistema
+        prefiere responder lento o rechazar la petición antes que asignar dos
+        veces el último cupo. Ocurre lo mismo en transferencias con \textit{De Una}
+        o Banco Pichincha cuando cae la señal: se bloquea la operación antes que
+        duplicar un débito. Es la misma prioridad \textbf{PC/EC} aplicada a las
+        postulaciones en PostgreSQL (\texttt{:5432}).
+  \item \textbf{Red móvil en el trayecto Valencia--Quevedo (fallos visibles en
+        WebSocket):} al viajar entre Valencia y Quevedo, los cambios de celda y
+        cortes breves de 4G interrumpen las sesiones TCP persistentes. En canales
+        en tiempo real como \texttt{/ws-notificaciones}, eso rompe la transparencia
+        de fallos y obliga a reconectar de forma explícita o degradar a reintentos,
+        en línea con lo observado en pruebas de WebSocket sobre enlaces inestables
+        \cite{mitrovic2023websocket,ref3}.
+\end{itemize}
 
 % =====================================================================
 \section{Tabla de aportes}
@@ -335,39 +415,12 @@ Acción preventiva & Etiqueta ``Ofertas de Sitios Externos'', fecha de última v
 \textbf{Integrante} & \textbf{Sección que expone} & \textbf{Qué aportó}\\
 \midrule
 Kenny España Vera        & & \\
-Jeremy Jaramillo Acosta  & & \\
+Jeremy Jaramillo Acosta  & Secciones 7, 8 y 9 (Comparación crítica, lecciones PFC y entorno propio) & Estructura inicial del repositorio y \texttt{README.md}, referencias base en \texttt{referencias.bib}, esqueleto de cierre/anexos y redacción de secciones 7, 8 y 9 en notas. \\
 Heiner Zambrano Ronquillo& Secciones 3 y 4 (Transparencias de distribución; CAP y PACELC) & Redacción de secciones 3 y 4 en notas, diapositivas Beamer de ambas secciones, referencias bibliográficas, captura subrayada de Camilleri \emph{et al.} (pág.~6) y demo en vivo (TCP :8080 y bloqueo CAP con PostgreSQL :5432). \\
 Luis Paca Pilataza       & & \\
 \bottomrule
 \end{tabularx}
 \end{center}
-
-% =====================================================================
-\section{Declaración de uso de IA}
-% =====================================================================
-% Pendiente: herramienta, para qué se usó, qué se revisó o reescribió.
-
-% =====================================================================
-%  REFERENCIAS (IEEE)
-% =====================================================================
-\renewcommand{\refname}{Referencias}
-\bibliographystyle{IEEEtran}
-\bibliography{referencias}
-
-% =====================================================================
-%  ANEXOS
-% =====================================================================
-\clearpage
-\appendix
-\renewcommand{\thesection}{\Alph{section}}
-\section{Foto del boceto a mano (con nombres y fecha)}
-% \includegraphics[width=\linewidth]{boceto.jpg}
-
-\section{Capturas de los artículos anotados}
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[height=0.72\textheight,keepaspectratio]{evidencias/captura_camilleri2024_heiner.png}
-  \caption{Fragmento subrayado de Camilleri \emph{et al.} (2024) \cite{ref5}, \textbf{pág.~6 de 41} (Heiner Zambrano). El pasaje respalda la Sección~4 (CAP y PACELC): muestra cómo el middleware \textit{Thespis} sobre un RDBMS logra consistencia causal+, disponibilidad y tolerancia a particiones, reduciendo la latencia en operación normal.}
   \label{fig:captura-camilleri}
 \end{figure}
 
