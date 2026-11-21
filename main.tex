@@ -226,7 +226,7 @@ las escrituras de postulación (bloqueo CAP).
 \end{itemize}
 
 % =====================================================================
-\section{Modelos de comunicación \expo{1,5 min}{\underline{\hspace{2.5cm}}}}
+\section{Modelos de comunicación \expo{1,5 min}{Luis Paca}}
 % =====================================================================
 \begin{itemize}
   \item \textbf{Arquitectura:} \emph{cliente--servidor}. No hay comunicación
@@ -256,15 +256,17 @@ funciona en cualquier navegador sin instalar nada (RI-01) y es más fácil de au
 externas (scraping y correo).
 
 % =====================================================================
-\section{Tolerancia a fallos \expo{2 min}{\underline{\hspace{2.5cm}}}}
+\section{Tolerancia a fallos \expo{2 min}{Luis Paca}}
 % =====================================================================
-\textbf{Qué fallos soporta:}
+\textbf{Qué fallos soporta y modelo de fallo:}
 \begin{itemize}
-  \item Portal externo caído o con estructura HTML cambiada durante el \textit{scraping}.
-  \item Ofertas externas expiradas o ya cubiertas en el sitio de origen.
-  \item Fallo temporal del servidor de correo (alertas pendientes).
-  \item Caída de la conexión en tiempo real del navegador (WebSocket).
-  \item Errores de usuario al registrar datos (RU-07).
+  \item \textbf{Omisión:} portal externo caído o con HTML modificado durante el
+        \textit{scraping}; fallo temporal del servidor SMTP (alertas pendientes).
+  \item \textbf{Temporización:} desfase de ofertas externas ya cubiertas en el sitio
+        de origen y cortes de la conexión WebSocket en tiempo real.
+  \item \textbf{\textit{Crash-stop} (mitigación por respaldo):} detención inesperada
+        del nodo de backend (\texttt{:8080}) o de PostgreSQL (\texttt{:5432}), además
+        de errores de usuario al registrar datos (RU-07).
 \end{itemize}
 \textbf{Cómo los detecta:} registro de auditoría de acciones críticas (RNF-02,
 RP-04), estado de cada ejecución de importación (éxito/error y número de ofertas),
@@ -286,7 +288,6 @@ llamadas a portales y SMTP, y validaciones en formularios.
 \end{itemize}
 
 \textbf{Incidente documentado y análisis de causas raíz (FORM-AC-01).}
-% TODO: ajustar las columnas al formato oficial FORM-AC-01 del docente.
 \textit{Caso:} riesgo de publicar ofertas externas expiradas o ya adquiridas.
 Lo identificó Suárez en su sistema de \textit{web mining} y lo ratificó el decano
 en las entrevistas \cite{espana2025bolsa}.
@@ -304,6 +305,9 @@ Acción correctiva & Sincronización que desactiva o elimina las ofertas no vige
 Acción preventiva & Etiqueta ``Ofertas de Sitios Externos'', fecha de última verificación
                     visible y prioridad a las ofertas validadas de empresas colaboradoras
                     (RF-05).\\
+Verificación & Revisión del registro de auditoría de ejecuciones de importación (RNF-02,
+               RP-04) y pruebas controladas comprobando que una vacante retirada del portal
+               origen pase a estado inactivo tras el siguiente ciclo de sincronización (RF-07).\\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -417,7 +421,7 @@ problema que guía directamente la arquitectura del PFC.
 Kenny España Vera        & & \\
 Jeremy Jaramillo Acosta  & Secciones 7, 8 y 9 (Comparación crítica, lecciones PFC y entorno propio) & Estructura inicial del repositorio y \texttt{README.md}, referencias base en \texttt{referencias.bib}, esqueleto de cierre/anexos y redacción de secciones 7, 8 y 9 en notas. \\
 Heiner Zambrano Ronquillo& Secciones 3 y 4 (Transparencias de distribución; CAP y PACELC) & Redacción de secciones 3 y 4 en notas, diapositivas Beamer de ambas secciones, referencias bibliográficas, captura subrayada de Camilleri \emph{et al.} (pág.~6) y demo en vivo (TCP :8080 y bloqueo CAP con PostgreSQL :5432). \\
-Luis Paca Pilataza       & & \\
+Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia a fallos) & Creación del repositorio, referencias en \texttt{referencias.bib}, redacción de secciones 5 y 6 en notas (modelos de fallo y causas raíz FORM-AC-01) y diapositivas Beamer de ambas secciones. \\
 \bottomrule
 \end{tabularx}
 \end{center}

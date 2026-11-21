@@ -176,10 +176,85 @@
 \end{frame}
 
 % ---------------------------------------------------------------------
-% SECCIONES 5 A 8 (Pendiente de completar por los demás integrantes)
+% SECCIÓN 5 — MODELOS DE COMUNICACIÓN (LUIS PACA)
 % ---------------------------------------------------------------------
-% \begin{frame}{5. Modelos de Comunicación}{...} ... \end{frame}
-% \begin{frame}{6. Tolerancia a Fallos}{...} ... \end{frame}
+\begin{frame}{5. Modelos de Comunicación (Luis Paca)}
+\framesubtitle{Cliente--servidor híbrido: síncrono, asíncrono y tiempo real (1,5 min)}
+\vspace{2pt}
+\begin{columns}[T,totalwidth=\textwidth]
+  \begin{column}{0.485\textwidth}
+    \begin{block}{Síncrono y Tiempo Real}
+      \begin{itemize}\setlength{\itemsep}{5pt}
+        \item \textbf{Cliente--servidor:} sin P2P; toda operación pasa por la API REST sobre TCP.
+        \item \textbf{HTTP/REST (TCP):} búsqueda, postulación y validación; rendimiento sensible a retardo y seguridad Wi-Fi \cite{guo2025tcpudp,ref2}.
+        \item \textbf{WebSocket (RFC 6455):} canal \textit{full-duplex} en \texttt{/ws-notificaciones}, menor latencia que \textit{polling} \cite{ref3,mitrovic2023websocket}.
+      \end{itemize}
+    \end{block}
+  \end{column}
+  \begin{column}{0.485\textwidth}
+    \begin{alertblock}{Asíncrono y Evolución}
+      \begin{itemize}\setlength{\itemsep}{5pt}
+        \item \textbf{Asíncrono:} \textit{scraping} programado (RF-07) y alertas SMTP en cola (RF-06) sin bloquear al usuario \cite{wytrebowicz2021messaging,bayilmis2022survey}.
+        \item \textbf{Transporte a futuro:} QUIC sobre UDP evita el bloqueo HoL de TCP \cite{jeddou2023tcpquic,kumar2025kquic} (no es requisito actual).
+        \item \textbf{Por qué:} alcance institucional, navegador estándar (RI-01) y auditoría directa (RNF-02).
+      \end{itemize}
+    \end{alertblock}
+  \end{column}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------------
+% SECCIÓN 6 — TOLERANCIA A FALLOS (LUIS PACA)
+% ---------------------------------------------------------------------
+\begin{frame}{6. Tolerancia a Fallos (Luis Paca)}
+\framesubtitle{Modelos de fallo, detección y recuperación (2 min)}
+\vspace{2pt}
+\begin{columns}[T,totalwidth=\textwidth]
+  \begin{column}{0.485\textwidth}
+    \begin{block}{Modelos de Fallo y Detección}
+      \begin{itemize}\setlength{\itemsep}{5pt}
+        \item \textbf{Omisión:} portal caído / HTML alterado en \textit{scraping}; fallo temporal SMTP.
+        \item \textbf{Temporización:} ofertas expiradas y cortes de WebSocket.
+        \item \textbf{\textit{Crash-stop}:} caída de backend (\texttt{:8080}) o PostgreSQL (\texttt{:5432}); errores de usuario (RU-07).
+        \item \textbf{Detección:} auditoría (RNF-02), estado de importación, vigencia (RF-07) y \textit{timeouts}.
+      \end{itemize}
+    \end{block}
+  \end{column}
+  \begin{column}{0.485\textwidth}
+    \begin{alertblock}{Recuperación y Resiliencia}
+      \begin{itemize}\setlength{\itemsep}{5pt}
+        \item \textbf{\textit{Scraping}:} reintento programado y baja automática de vacantes vencidas (RF-07).
+        \item \textbf{Correo y WS:} cola SMTP; reconexión WS con respaldo a \textit{long polling} \cite{mitrovic2023websocket}.
+        \item \textbf{Evolución sin caídas:} versionado retrocompatible de API y servicios \cite{ref4}.
+        \item \textbf{Datos:} respaldos periódicos para meta de 99,5\,\% (RNF-01).
+      \end{itemize}
+    \end{alertblock}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{6. Incidente y Análisis de Causas Raíz (Luis Paca)}
+\framesubtitle{FORM-AC-01: Ofertas externas expiradas o ya cubiertas}
+\vspace{2pt}
+\scriptsize
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}X}
+\toprule
+Problema & El graduado postula a una oferta que ya no existe en el portal de origen. \\
+Causa inmediata & El catálogo local solo se actualiza en cada ejecución del \textit{scraping}. \\
+Causa raíz & Sin control sobre el origen; consistencia eventual por diseño (\textbf{PA/EL}). \\
+Acción correctiva & Sincronización que desactiva o elimina las ofertas no vigentes (RF-07). \\
+Acción preventiva & Etiqueta ``Ofertas de Sitios Externos'', fecha de verificación visible y prioridad a ofertas validadas (RF-05). \\
+Verificación & Auditoría de importaciones (RNF-02, RP-04) y prueba de desactivación automática al retirar una vacante en el portal origen. \\
+\bottomrule
+\end{tabularx}
+\vspace{6pt}
+
+{\footnotesize La compatibilidad entre versiones de servicios permite desplegar ajustes de ingesta sin interrumpir el núcleo \cite{ref4}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+% SECCIONES 7 A 8 (Pendiente de completar por los demás integrantes)
+% ---------------------------------------------------------------------
 % \begin{frame}{7. Comparación y Postura Crítica}{...} ... \end{frame}
 % \begin{frame}{8. Lecciones para el PFC y Conclusiones}{...} ... \end{frame}
 
