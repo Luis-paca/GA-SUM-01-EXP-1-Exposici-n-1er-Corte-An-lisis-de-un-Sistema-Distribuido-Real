@@ -238,8 +238,12 @@ las escrituras de postulación (bloqueo CAP).
         (WPA2/WPA3) afectan el \textit{throughput} de TCP y UDP \cite{ref2}.
   \item \textbf{Asincrónico:} la importación de ofertas (tarea programada) y las
         alertas por correo (RF-06) no bloquean al usuario. La literatura sobre
-        protocolos de mensajería (MQTT, AMQP, entre otros) resume cuándo conviene
-        desacoplar emisor y receptor \cite{wytrebowicz2021messaging,bayilmis2022survey}.
+        protocolos de mensajería ---como MQTT para el desacoplamiento entre
+        productores y consumidores y AMQP basado en \textit{broker} y colas---
+        resume cuándo conviene desacoplar emisor y receptor
+        \cite{petrescu2025iotprotocols,bayilmis2022survey}; como propuesta del
+        equipo para JobFinder, se plantea adoptar un \textit{broker} con colas AMQP
+        en la evolución del sistema.
   \item \textbf{Sockets / RPC / mensajería:} REST (estilo RPC sobre HTTP) para el
         núcleo; mensajería/cola para notificaciones. Para alertas \emph{dentro de la
         interfaz} (RI-05) se propone \textbf{WebSocket} (RFC 6455): canal
@@ -356,7 +360,7 @@ del nodo de BD y la coincidencia perfil--vacante sigue siendo básica.
 multirregión de LinkedIn sería sobreingeniería para la UTEQ. El compromiso
 correcto es mantener la consistencia fuerte (\textbf{PC/EC}) en el núcleo
 transaccional, pero separar la ingesta externa y las notificaciones en servicios
-desacoplados \cite{ref4,wytrebowicz2021messaging}.
+desacoplados mediante mensajería asíncrona \cite{ref4,petrescu2025iotprotocols}.
 
 % =====================================================================
 \section{Lecciones para el PFC y conclusiones \expo{1 min}{Jeremy Jaramillo}}
@@ -369,9 +373,10 @@ desacoplados \cite{ref4,wytrebowicz2021messaging}.
         I/O en el \textit{scraping} no degrade las postulaciones activas,
         manteniendo compatibilidad entre versiones de contratos \cite{ref4}.
   \item \textbf{Comunicación diferenciada:} usar gRPC para llamadas internas
-        síncronas del núcleo y mensajería asíncrona (AMQP) para alertas e ingesta,
-        desacoplando emisor y receptor frente a servicios externos lentos o caídos
-        \cite{wytrebowicz2021messaging}.
+        síncronas del núcleo y, como propuesta del equipo para JobFinder, incorporar
+        mensajería asíncrona mediante un \textit{broker} y colas AMQP para alertas e
+        ingesta, desacoplando productores y consumidores frente a servicios externos
+        lentos o caídos \cite{petrescu2025iotprotocols}.
   \item \textbf{Modelo CAP/PACELC y verificación:} conservar \textbf{PC/EC} en
         PostgreSQL para el núcleo y \textbf{PA/EL} solo en el catálogo importado;
         si el proyecto escalara entre sedes, se evaluaría consistencia causal+

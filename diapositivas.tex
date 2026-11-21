@@ -194,7 +194,7 @@
   \begin{column}{0.485\textwidth}
     \begin{alertblock}{Asíncrono y Evolución}
       \begin{itemize}\setlength{\itemsep}{5pt}
-        \item \textbf{Asíncrono:} \textit{scraping} programado (RF-07) y alertas SMTP en cola (RF-06) sin bloquear al usuario \cite{wytrebowicz2021messaging,bayilmis2022survey}.
+        \item \textbf{Asíncrono:} \textit{scraping} programado (RF-07) y alertas SMTP (RF-06) sin bloquear al usuario; el equipo propone un \textit{broker} con colas AMQP para desacoplar productores y consumidores \cite{petrescu2025iotprotocols,bayilmis2022survey}.
         \item \textbf{Transporte a futuro:} QUIC sobre UDP evita el bloqueo HoL de TCP \cite{jeddou2023tcpquic,kumar2025kquic} (no es requisito actual).
         \item \textbf{Por qué:} alcance institucional, navegador estándar (RI-01) y auditoría directa (RNF-02).
       \end{itemize}
