@@ -421,6 +421,32 @@ Luis Paca Pilataza       & & \\
 \bottomrule
 \end{tabularx}
 \end{center}
+% =====================================================================
+\section{Declaración de uso de IA}
+% =====================================================================
+% Pendiente: herramienta, para qué se usó, qué se revisó o reescribió.
+
+% =====================================================================
+%  REFERENCIAS (IEEE)
+% =====================================================================
+\renewcommand{\refname}{Referencias}
+\bibliographystyle{IEEEtran}
+\bibliography{referencias}
+
+% =====================================================================
+%  ANEXOS
+% =====================================================================
+\clearpage
+\appendix
+\renewcommand{\thesection}{\Alph{section}}
+\section{Foto del boceto a mano (con nombres y fecha)}
+% \includegraphics[width=\linewidth]{boceto.jpg}
+
+\section{Capturas de los artículos anotados}
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[height=0.72\textheight,keepaspectratio]{evidencias/captura_camilleri2024_heiner.png}
+  \caption{Fragmento subrayado de Camilleri \emph{et al.} (2024) \cite{ref5}, \textbf{pág.~6 de 41} (Heiner Zambrano). El pasaje respalda la Sección~4 (CAP y PACELC): muestra cómo el middleware \textit{Thespis} sobre un RDBMS logra consistencia causal+, disponibilidad y tolerancia a particiones, reduciendo la latencia en operación normal.}
   \label{fig:captura-camilleri}
 \end{figure}
 
