@@ -15,6 +15,8 @@
 \usepackage{tabularx}
 \usepackage{array}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
 \usepackage[backend=biber,style=ieee]{biblatex}
 \addbibresource{referencias.bib}
 
@@ -57,10 +59,67 @@
 \end{frame}
 
 % ---------------------------------------------------------------------
-% SECCIONES 1 Y 2 (Pendiente de completar por el integrante asignado)
+% SECCIÓN 1 — PRESENTACIÓN DEL SISTEMA (KENNY ESPAÑA)
 % ---------------------------------------------------------------------
-% \begin{frame}{1. Presentación del Sistema}{...} ... \end{frame}
-% \begin{frame}{2. Arquitectura del Sistema}{...} ... \end{frame}
+\begin{frame}{1. Presentación del Sistema (Kenny España)}
+\framesubtitle{JobFinder --- Bolsa de Empleos para Graduados UTEQ (1 min)}
+\vspace{2pt}
+\begin{columns}[T,totalwidth=\textwidth]
+  \begin{column}{0.485\textwidth}
+    \begin{block}{Problema y Actores}
+      \begin{itemize}\setlength{\itemsep}{5pt}
+        \item \textbf{Problema:} la UTEQ carece de una bolsa oficial que integre vacantes locales validadas y ofertas externas (\textit{web scraping}), en línea con sistemas de recomendación para graduados \cite{ref1}.
+        \item \textbf{Graduados:} perfil, búsqueda, postulación y alertas.
+        \item \textbf{Empresas:} publicación de vacantes y gestión de postulantes.
+        \item \textbf{Admin UTEQ:} validación previa (RF-05) y auditoría (RNF-02).
+      \end{itemize}
+    \end{block}
+  \end{column}
+  \begin{column}{0.485\textwidth}
+    % TODO: agregar \cite{} de la fuente de estas cifras (INEC / seguimiento UTEQ 2022)
+    \begin{alertblock}{Escala y Contexto (cifras)}
+      \begin{itemize}\setlength{\itemsep}{5pt}
+        \item \textbf{20,9\,\%} de jóvenes universitarios en subempleo y \textbf{4,1\,\%} en desempleo (INEC).
+        \item Graduados UTEQ 2022: solo el \textbf{51,50\,\%} trabaja.
+        \item Apenas el \textbf{8,41\,\%} consiguió empleo por bolsas de empleo.
+        \item \textbf{Escala:} una universidad; meta de disponibilidad \textbf{99,5\,\%} (RNF-01).
+      \end{itemize}
+    \end{alertblock}
+  \end{column}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------------
+% SECCIÓN 2 — ARQUITECTURA (KENNY ESPAÑA)
+% ---------------------------------------------------------------------
+\begin{frame}{2. Arquitectura del Sistema (Kenny España)}
+\framesubtitle{Cliente--servidor en tres niveles sobre TCP (2 min)}
+\centering
+\begin{tikzpicture}[
+  node distance=7mm and 12mm,
+  box/.style={draw=uteqblue,rounded corners,align=center,font=\scriptsize,
+              minimum width=27mm,minimum height=9mm,fill=uteqbg},
+  ext/.style={box,draw=gray,dashed,fill=gray!8},
+  arr/.style={-{Latex[length=2mm]},thick,uteqdark},
+  aarr/.style={-{Latex[length=2mm]},thick,dashed,uteqorange}]
+  \node[box] (cli) {\textbf{Cliente web}\\graduado / empresa / admin};
+  \node[box,right=of cli] (api) {\textbf{API REST}\\\texttt{/api/**} (:8080)};
+  \node[box,right=of api] (db) {\textbf{PostgreSQL} (:5432)\\datos + auditoría};
+  \node[box,below=of api] (ws) {\textbf{Módulo WebSocket}\\\texttt{/ws-notificaciones}};
+  \node[box,below=of ws] (scr) {\textbf{Worker de scraping}\\(programado, RF-07)};
+  \node[ext,right=of scr] (por) {Portales externos\\de empleo};
+  \node[ext,right=of ws] (smtp) {Servidor SMTP\\(:587)};
+  \draw[arr] (cli) -- node[above,font=\tiny]{HTTPS} (api);
+  \draw[arr] (api) -- node[above,font=\tiny]{SQL} (db);
+  \draw[aarr,<->] (cli.south) |- node[pos=0.75,above,font=\tiny]{WebSocket} (ws.west);
+  \draw[aarr] (scr) -- node[above,font=\tiny]{HTTPS} (por);
+  \draw[aarr] (scr) -- node[right,font=\tiny]{nuevas ofertas} (ws);
+  \draw[aarr] (ws) -- node[above,font=\tiny]{correo} (smtp);
+\end{tikzpicture}
+
+\vspace{4pt}
+{\footnotesize Línea continua: síncrono (petición--respuesta). Discontinua: asíncrono / periódico. Servicios separados que evolucionan por su cuenta manteniendo compatibilidad de versiones \cite{ref4}.}
+\end{frame}
 
 % ---------------------------------------------------------------------
 % SECCIÓN 3 — TRANSPARENCIAS DE DISTRIBUCIÓN (HEINER ZAMBRANO)
