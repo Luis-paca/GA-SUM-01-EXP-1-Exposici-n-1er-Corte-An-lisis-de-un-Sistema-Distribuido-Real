@@ -77,11 +77,13 @@ usuarios, reportes y auditoría).
 
 \textbf{A qué escala opera (cifras citadas).}
 \begin{itemize}
-  \item Contexto nacional (INEC): 20,9\,\% de jóvenes con formación universitaria
-        en subempleo y 4,1\,\% en desempleo.
-  \item Seguimiento a graduados UTEQ 2022: solo el 51,50\,\% trabaja; el 55\,\%
-        consiguió su primer empleo por recomendación personal y apenas el 8,41\,\%
-        por bolsas de empleo.
+  \item Contexto nacional (INEC, mayo de 2025): la tasa de subempleo a nivel
+        nacional fue de 20,9\,\% y la de desempleo de 4,1\,\% de la población
+        económicamente activa \cite{inec2025enemduMayo}.
+  \item Seguimiento a graduados UTEQ 2022: el 51,50\,\% de los graduados se
+        encuentra trabajando; de ellos, el 55\,\% consiguió su primer empleo por
+        recomendación personal y apenas el 8,41\,\% por bolsas de empleo
+        \cite{uteq2022seguimiento}.
   \item Escala institucional (una universidad) con meta de disponibilidad de
         99,5\,\% durante el ciclo académico (RNF-01).
         \textit{Nota para el expositor: el sistema está en fase de requisitos y
@@ -340,19 +342,26 @@ Criterio & \textbf{JobFinder (UTEQ)} & \textbf{LinkedIn} \\
 \midrule
 Arquitectura y escala
   & Backend centralizado (\texttt{:8080}) sobre una instancia PostgreSQL (\texttt{:5432}), orientado a una sola universidad.
-  & Microservicios multirregión, bases de datos replicadas y colas distribuidas de eventos a escala global. \\
+  & Más de 1\,200 millones de miembros; su plataforma de eventos llegó a mover más
+    de 32 billones de registros al día en más de 10\,000 máquinas y 150 clústeres
+    \cite{linkedin2025northguard}. \\
 \midrule
 CAP / PACELC
   & \textbf{PC/EC} en cuentas, validación y postulaciones; \textbf{PA/EL} en catálogo externo y alertas WebSocket.
-  & \textbf{PA/EL} en el \textit{feed} y buscador (consistencia eventual para baja latencia) y controles estrictos en operaciones puntuales. \\
+  & \textit{Inferencia del equipo:} \textbf{PA/EL} en el \textit{feed} y el buscador, que
+    se sirven desde índices y almacenes distribuidos alimentados por Kafka
+    \cite{linkedinFeedInfra}; se privilegia la baja latencia sobre la consistencia inmediata. \\
 \midrule
 Validación y búsqueda
   & Revisión manual previa por el administrador (RF-05) y filtros estructurados sobre la base local.
-  & Moderación automatizada y motores de recomendación semántica y social, enfoque estudiado para graduados en \cite{ref1}. \\
+  & Índices de búsqueda, capa de \textit{ranking} y aprendizaje automático sobre datos
+    distribuidos \cite{linkedinFeedInfra}; la recomendación según perfil es el enfoque
+    estudiado para graduados en \cite{ref1}. \\
 \midrule
 Tolerancia a fallos
   & Punto único de fallo en PostgreSQL (\texttt{:5432}) y en el nodo del backend (\texttt{:8080}).
-  & Replicación entre centros de datos; absorbe caídas de nodos sin interrumpir el acceso general. \\
+  & Datos replicados por segmentos y metadatos en máquinas de estado replicadas con Raft
+    (Northguard), que soportan la caída de nodos \cite{linkedin2025northguard}. \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -364,7 +373,7 @@ postulaciones mantienen integridad ACID inmediata.
 PostgreSQL que el tráfico interactivo, no existe réplica en caliente ante caídas
 del nodo de BD y la coincidencia perfil--vacante sigue siendo básica.
 \textbf{Postura crítica (\textit{trade-offs}):} imitar la infraestructura
-multirregión de LinkedIn sería sobreingeniería para la UTEQ. El compromiso
+distribuida de LinkedIn sería sobreingeniería para la UTEQ. El compromiso
 correcto es mantener la consistencia fuerte (\textbf{PC/EC}) en el núcleo
 transaccional, pero separar la ingesta externa y las notificaciones en servicios
 desacoplados mediante mensajería asíncrona \cite{ref4,petrescu2025iotprotocols}.
