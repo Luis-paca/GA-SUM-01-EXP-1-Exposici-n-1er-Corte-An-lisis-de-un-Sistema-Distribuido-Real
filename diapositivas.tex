@@ -1,323 +1,489 @@
-% =====================================================================
-%  Diapositivas Beamer — GA-SUM-02 / EXP-1
-%  Sistema analizado: JobFinder — Bolsa de Empleos para Graduados UTEQ
-%  Compilar: pdflatex -> biber -> pdflatex -> pdflatex
-% =====================================================================
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish,es-nodecimaldot,es-tabla]{babel}
 \usepackage{csquotes}
-\usepackage{lmodern}
+\usepackage[sfdefault]{FiraSans}
+\usepackage{inconsolata}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{array}
+\usepackage{colortbl}
 \usepackage{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,babel}
+\usetikzlibrary{babel}
+\usepackage[most]{tcolorbox}
 \usepackage[backend=biber,style=ieee]{biblatex}
 \addbibresource{referencias.bib}
 
-% Evita cambio de tipografía (serif/small-caps) en siglas como DOI en biblatex
 \renewcommand*{\mkbibacro}[1]{#1}
 
-% Tema y paleta visual (bloques azul / naranja sobre fondo limpio)
-\usetheme{Madrid}
-\usecolortheme{default}
-\definecolor{uteqblue}{RGB}{18,68,196}
-\definecolor{uteqdark}{RGB}{24,38,66}
-\definecolor{uteqorange}{RGB}{214,122,12}
-\definecolor{uteqbg}{RGB}{246,248,252}
+% =====================================================================
+% PALETA MODERNA (Midnight + Cobalt + Amber + Cool Slate)
+% =====================================================================
+\definecolor{NavyDark}{HTML}{0B1120}
+\definecolor{NavySoft}{HTML}{1E293B}
+\definecolor{BlueAccent}{HTML}{2563EB}
+\definecolor{AmberAccent}{HTML}{D97706}
+\definecolor{CardBg}{HTML}{F8FAFC}
+\definecolor{CardBorder}{HTML}{CBD5E1}
+\definecolor{SlateText}{HTML}{475569}
+\definecolor{RowAlt}{HTML}{F1F5F9}
 
-\setbeamercolor{title}{fg=white,bg=uteqdark}
-\setbeamercolor{frametitle}{fg=uteqdark,bg=white}
-\setbeamercolor{framesubtitle}{fg=uteqdark}
-\setbeamercolor{structure}{fg=uteqblue}
-\setbeamercolor{block title}{fg=white,bg=uteqblue}
-\setbeamercolor{block body}{fg=black,bg=uteqbg}
-\setbeamercolor{block title alerted}{fg=white,bg=uteqorange}
-\setbeamercolor{block body alerted}{fg=black,bg=uteqbg}
+\usetheme{default}
+\usecolortheme{default}
 \setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamertemplate{itemize item}{\textcolor{BlueAccent}{\small$\blacktriangleright$}}
 \setbeamertemplate{frametitle continuation}{}
 
-\title[GA-SUM-02 / EXP-1]{JobFinder: Bolsa de Empleos para Graduados UTEQ}
-\subtitle{Análisis de un Sistema Distribuido Real}
-\author[Equipo EJPZ]{\texorpdfstring{Kenny España Vera \quad\textbullet\quad Jeremy Jaramillo Acosta\\[3pt] Luis Paca Pilataza \quad\textbullet\quad Heiner Zambrano Ronquillo}{Kenny España Vera, Jeremy Jaramillo Acosta, Luis Paca Pilataza, Heiner Zambrano Ronquillo}}
-\institute[UTEQ]{Universidad Técnica Estatal de Quevedo\\Ingeniería en Software — Aplicaciones Distribuidas}
-\date{Noviembre de 2026}
+\setbeamercolor{normal text}{fg=NavyDark,bg=white}
+\setbeamercolor{structure}{fg=BlueAccent}
+\setbeamercolor{frametitle}{fg=NavyDark,bg=white}
+\setbeamercolor{framesubtitle}{fg=SlateText}
+
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\footnotesize,series=\mdseries}
+
+% Encabezado moderno con línea de acento degradada (azul -> gris)
+\makeatletter
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=1.28cm,dp=0.20cm,leftskip=0.75cm,rightskip=0.75cm]{frametitle}
+    \vspace{0.15cm}
+    {\usebeamerfont{frametitle}\insertframetitle}\par
+    \ifx\insertframesubtitle\@empty\else
+      \vspace{0.05cm}
+      {\usebeamerfont{framesubtitle}\insertframesubtitle}\par
+    \fi
+  \end{beamercolorbox}
+  \nointerlineskip
+  \hbox{\color{BlueAccent}\rule{2.8cm}{2pt}\color{CardBorder}\rule{\dimexpr\paperwidth-2.8cm\relax}{0.6pt}}
+  \vspace{-0.15cm}
+}
+\makeatother
+
+% Pie de página minimalista con píldora numerada
+\setbeamertemplate{footline}{
+  \leavevmode%
+  \hbox{\color{CardBorder}\rule{\paperwidth}{0.5pt}}%
+  \vspace{2pt}
+  \hbox{%
+    \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.4ex,dp=1.2ex,leftskip=0.75cm]{author in head/foot}%
+      \textcolor{SlateText}{\scriptsize Equipo EJPZ \;\textbullet\; Aplicaciones Distribuidas (Paralelo A) \;\textbullet\; UTEQ}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.4ex,dp=1.2ex,rightskip=0.75cm]{date in head/foot}%
+      \hfill\textcolor{BlueAccent}{\scriptsize\bfseries \insertframenumber}\textcolor{SlateText}{\scriptsize\ / \inserttotalframenumber}
+    \end{beamercolorbox}%
+  }%
+  \vskip2pt%
+}
+
+% =====================================================================
+% TARJETAS MODERNAS (tcolorbox)
+% =====================================================================
+\newtcolorbox{bluecard}[1]{
+  enhanced,
+  colback=CardBg,
+  colframe=CardBorder,
+  boxrule=0.6pt,
+  arc=4pt,
+  borderline north={2.8pt}{0pt}{BlueAccent},
+  title={#1},
+  coltitle=BlueAccent,
+  colbacktitle=CardBg,
+  fonttitle=\bfseries\normalsize,
+  halign title=flush left,
+  halign=flush left,
+  titlerule=0.4pt,
+  titlerule style={CardBorder},
+  toptitle=4pt, bottomtitle=4pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{ambercard}[1]{
+  enhanced,
+  colback=CardBg,
+  colframe=CardBorder,
+  boxrule=0.6pt,
+  arc=4pt,
+  borderline north={2.8pt}{0pt}{AmberAccent},
+  title={#1},
+  coltitle=AmberAccent,
+  colbacktitle=CardBg,
+  fonttitle=\bfseries\normalsize,
+  halign title=flush left,
+  halign=flush left,
+  titlerule=0.4pt,
+  titlerule style={CardBorder},
+  toptitle=4pt, bottomtitle=4pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{demobar}{
+  enhanced,
+  colback=NavyDark,
+  colframe=NavyDark,
+  coltext=white,
+  arc=4pt,
+  borderline west={3.5pt}{0pt}{AmberAccent},
+  halign=flush left,
+  left=10pt, right=10pt, top=5pt, bottom=5pt,
+  fontupper=\footnotesize
+}
+
+\title{WebSockets, TCP y UDP en JobFinder}
+\subtitle{Comunicación en tiempo real aplicada a la Bolsa de Empleos para Graduados}
+\author{Kenny España \and Luis Jaramillo \and Luis Paca \and Heiner Zambrano}
+\institute{Equipo EJPZ --- Facultad de Ciencias de la Computación, UTEQ}
+\date{Noviembre 2026}
 
 \begin{document}
 
-% ---------------------------------------------------------------------
-% PORTADA
-% ---------------------------------------------------------------------
-\begin{frame}
-  \titlepage
+% =====================================================================
+% DIAPOSITIVA 1: PORTADA KEYNOTE FULL-BLEED
+% =====================================================================
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[NavyDark] (current page.south west) rectangle (current page.north east);
+    \fill[BlueAccent] (current page.south west) rectangle ([xshift=0.35cm]current page.north west);
+    \fill[AmberAccent] ([xshift=0.35cm,yshift=-0.12cm]current page.north west) rectangle ([xshift=4.2cm]current page.north west);
+    \fill[NavySoft,opacity=0.45] ([xshift=-3.6cm]current page.north east) -- (current page.north east) -- (current page.south east) -- ([xshift=-1.4cm]current page.south east) -- cycle;
+  \end{tikzpicture}
+  \vspace{1.2cm}
+  \hspace{0.5cm}\begin{minipage}{0.86\textwidth}
+    {\footnotesize\bfseries\textcolor{AmberAccent}{APLICACIONES DISTRIBUIDAS \;\textbullet\; PARALELO A \;\textbullet\; UTEQ}}\par
+    \vspace{0.45cm}
+    {\Huge\bfseries\textcolor{white}{WebSockets, TCP y UDP\\en JobFinder}}\par
+    \vspace{0.35cm}
+    {\large\textcolor{CardBorder}{Comunicación en tiempo real aplicada a la Bolsa de Empleos para Graduados}}\par
+    \vspace{1.15cm}
+    {\color{BlueAccent}\rule{2.2cm}{1.5pt}}\par
+    \vspace{0.35cm}
+    {\footnotesize\textcolor{white}{\textbf{Equipo EJPZ:} Kenny España \;\textbullet\; Luis Jeremy Jaramillo \;\textbullet\; Heiner Zambrano \;\textbullet\; Luis Alberto Paca}}\par
+    \vspace{0.12cm}
+    {\scriptsize\textcolor{CardBorder}{Facultad de Ciencias de la Computación --- Universidad Técnica Estatal de Quevedo}}
+  \end{minipage}
 \end{frame}
 
-% ---------------------------------------------------------------------
-% SECCIÓN 1 — PRESENTACIÓN DEL SISTEMA (KENNY ESPAÑA)
-% ---------------------------------------------------------------------
+% =====================================================================
+% DIAPOSITIVA 2: 1. PRESENTACIÓN DEL SISTEMA (KENNY ESPAÑA)
+% =====================================================================
 \begin{frame}{1. Presentación del Sistema (Kenny España)}
-\framesubtitle{JobFinder --- Bolsa de Empleos para Graduados UTEQ (1 min)}
-\vspace{2pt}
-\begin{columns}[T,totalwidth=\textwidth]
-  \begin{column}{0.485\textwidth}
-    \begin{block}{Problema y Actores}
-      \begin{itemize}\setlength{\itemsep}{4pt}
-        \item \textbf{Problema:} sin bolsa oficial UTEQ que integre vacantes validadas y externas (\textit{scraping}), enfoque de recomendación para graduados \cite{ref1}.
-        \item \textbf{Graduados:} perfil, búsqueda, postulación y alertas.
-        \item \textbf{Empresas:} publicación y gestión de postulantes.
-        \item \textbf{Admin UTEQ:} validación (RF-05) y auditoría (RNF-02).
-      \end{itemize}
-    \end{block}
-  \end{column}
-  \begin{column}{0.485\textwidth}
-    \begin{alertblock}{Escala y Contexto (cifras)}
-      \begin{itemize}\setlength{\itemsep}{6pt}
-        \item \textbf{Ecuador (mayo 2025):} tasas nacionales de \textbf{20,9\,\%} de subempleo y \textbf{4,1\,\%} de desempleo \cite{inec2025enemduMayo}.
-        \item \textbf{Seguimiento UTEQ 2022:} \textbf{51,50\,\%} de graduados encuestados trabajaba; entre ellos, el \textbf{8,41\,\%} halló su primer empleo mediante bolsas de empleo \cite{uteq2022seguimiento}.
-        \item \textbf{Escala institucional:} una universidad, con \textbf{99,5\,\%} como meta de disponibilidad (RNF-01).
-      \end{itemize}
-    \end{alertblock}
-  \end{column}
-\end{columns}
+  \framesubtitle{Inserción laboral en la UTEQ y alcance de JobFinder \cite{uteq2022seguimiento}}
+  \vspace{0.15cm}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \begin{column}{0.315\textwidth}
+      \begin{bluecard}{Empleabilidad Actual}
+        \centering
+        \vspace{0.15cm}
+        {\Huge\bfseries\textcolor{BlueAccent}{51,50\,\%}}\par
+        \vspace{0.2cm}
+        \footnotesize Graduados con empleo activo según informe UTEQ \cite{uteq2022seguimiento}.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.315\textwidth}
+      \begin{ambercard}{Canal Institucional}
+        \centering
+        \vspace{0.15cm}
+        {\Huge\bfseries\textcolor{AmberAccent}{8,41\,\%}}\par
+        \vspace{0.2cm}
+        \footnotesize Contratados mediante bolsas de empleo universitarias \cite{uteq2022seguimiento}.
+      \end{ambercard}
+    \end{column}
+    \begin{column}{0.315\textwidth}
+      \begin{bluecard}{Actores del Sistema}
+        \centering
+        \vspace{0.15cm}
+        {\Huge\bfseries\textcolor{NavyDark}{3 Roles}}\par
+        \vspace{0.2cm}
+        \footnotesize Graduado, Empresa Colaboradora y Administrador UTEQ.
+      \end{bluecard}
+    \end{column}
+  \end{columns}
+  \vspace{0.45cm}
+  \begin{demobar}
+    \textcolor{AmberAccent}{\textbf{Propósito:}} Centralizar vacantes validadas por administradores y ofertas externas sincronizadas para los graduados de la UTEQ \cite{ref1}.
+  \end{demobar}
 \end{frame}
 
-% ---------------------------------------------------------------------
-% SECCIÓN 2 — ARQUITECTURA (KENNY ESPAÑA)
-% ---------------------------------------------------------------------
-\begin{frame}{2. Arquitectura del Sistema (Kenny España)}
-\framesubtitle{Cliente--servidor en tres niveles sobre TCP (2 min)}
-\centering
-\begin{tikzpicture}[
-  node distance=7mm and 12mm,
-  box/.style={draw=uteqblue,rounded corners,align=center,font=\scriptsize,
-              minimum width=27mm,minimum height=9mm,fill=uteqbg},
-  ext/.style={box,draw=gray,dashed,fill=gray!8},
-  arr/.style={-{Latex[length=2mm]},thick,uteqdark},
-  aarr/.style={-{Latex[length=2mm]},thick,dashed,uteqorange}]
-  \node[box] (cli) {\textbf{Cliente web}\\graduado / empresa / admin};
-  \node[box,right=of cli] (api) {\textbf{API REST}\\\texttt{/api/**} (:8080)};
-  \node[box,right=of api] (db) {\textbf{PostgreSQL} (:5432)\\datos + auditoría};
-  \node[box,below=of api] (ws) {\textbf{Módulo WebSocket}\\\texttt{/ws-notificaciones}};
-  \node[box,below=of ws] (scr) {\textbf{Worker de scraping}\\(programado, RF-07)};
-  \node[ext,right=of scr] (por) {Portales externos\\de empleo};
-  \node[ext,right=of ws] (smtp) {Servidor SMTP\\(:587)};
-  \draw[arr] (cli) -- node[above,font=\tiny]{HTTPS} (api);
-  \draw[arr] (api) -- node[above,font=\tiny]{SQL} (db);
-  \draw[aarr,<->] (cli.south) |- node[pos=0.75,above,font=\tiny]{WebSocket} (ws.west);
-  \draw[aarr] (scr) -- node[above,font=\tiny]{HTTPS} (por);
-  \draw[aarr] (scr) -- node[right,font=\tiny]{nuevas ofertas} (ws);
-  \draw[aarr] (ws) -- node[above,font=\tiny]{correo} (smtp);
-\end{tikzpicture}
-
-\vspace{4pt}
-{\footnotesize Línea continua: síncrono (petición--respuesta). Discontinua: asíncrono / periódico. Servicios separados que evolucionan por su cuenta manteniendo compatibilidad de versiones \cite{ref4}.}
+% =====================================================================
+% DIAPOSITIVA 3: TCP VS UDP (KENNY ESPAÑA)
+% =====================================================================
+\begin{frame}{Protocolos TCP frente a UDP (Kenny España)}
+  \framesubtitle{Fundamento de la capa de transporte \cite{ref2,guo2025tcpudp}}
+  \vspace{0.2cm}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \begin{column}{0.485\textwidth}
+      \begin{bluecard}{TCP --- Adoptado en JobFinder}
+        \begin{itemize}\setlength{\itemsep}{6pt}
+          \item \textbf{Conexión:} saludo de tres vías (\textit{three-way handshake}).
+          \item \textbf{Fiabilidad:} entrega ordenada y acuses \texttt{ACK}.
+          \item \textbf{Uso:} postulaciones y alertas críticas.
+        \end{itemize}
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.485\textwidth}
+      \begin{ambercard}{UDP --- Descartado}
+        \begin{itemize}\setlength{\itemsep}{6pt}
+          \item \textbf{Conexión:} datagramas sin sesión previa.
+          \item \textbf{Fiabilidad:} sin retransmisión ante pérdidas.
+          \item \textbf{Uso:} multimedia o telemetría tolerante a fallos.
+        \end{itemize}
+      \end{ambercard}
+    \end{column}
+  \end{columns}
 \end{frame}
 
-% ---------------------------------------------------------------------
-% SECCIÓN 3 — TRANSPARENCIAS DE DISTRIBUCIÓN (HEINER ZAMBRANO)
-% ---------------------------------------------------------------------
+% =====================================================================
+% DIAPOSITIVA 4: CICLO WEBSOCKET + PRÁCTICA 1 (KENNY ESPAÑA)
+% =====================================================================
+\begin{frame}{Ciclo WebSocket (RFC 6455) y Práctica 1 (Kenny España)}
+  \framesubtitle{Establecimiento del canal Full-Duplex sobre TCP \cite{ref3,mitrovic2023websocket}}
+  \vspace{0.2cm}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \begin{column}{0.235\textwidth}
+      \begin{bluecard}{01. Petición}
+        \footnotesize Cliente envía \texttt{Upgrade: websocket} sobre HTTP.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.235\textwidth}
+      \begin{bluecard}{02. HTTP 101}
+        \footnotesize Servidor acepta con \texttt{101 Switching Protocols}.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.235\textwidth}
+      \begin{bluecard}{03. Full-Duplex}
+        \footnotesize Tramas ligeras bidireccionales sobre TCP.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.235\textwidth}
+      \begin{ambercard}{04. Práctica 1}
+        \footnotesize Envío UDP vs. sesión WS en DevTools.
+      \end{ambercard}
+    \end{column}
+  \end{columns}
+  \vspace{0.5cm}
+  \begin{demobar}
+    \textcolor{AmberAccent}{\textbf{Demostración en vivo:}} Ejecución de \texttt{demo\_udp.js} en terminal y verificación de \texttt{HTTP 101} en Chrome DevTools.
+  \end{demobar}
+\end{frame}
+
+% =====================================================================
+% DIAPOSITIVA 5: 2. ARQUITECTURA REAL (LUIS JEREMY JARAMILLO)
+% =====================================================================
+\begin{frame}{2. Arquitectura del Sistema JobFinder (Luis Jeremy Jaramillo)}
+  \framesubtitle{Angular (:4200) \;\textbullet\; Spring Boot (:8080) \;\textbullet\; PostgreSQL (:5432) + Full-Duplex}
+  \centering
+  \vspace{0.08cm}
+  \includegraphics[width=0.90\textwidth,height=0.55\textheight,keepaspectratio]{arquitectura_jobfinder.png}\par
+  \vspace{0.18cm}
+  \begin{demobar}
+    \textcolor{AmberAccent}{\textbf{Deuda técnica (Arquitectura):}} \texttt{JSearchRapidApiService} corre síncrono dentro de \texttt{:8080}; en el PFC (\texttt{TA-PFC-E1}) se aísla en un \textit{worker} Docker con contratos retrocompatibles \cite{ref4}.
+  \end{demobar}
+\end{frame}
+
+% =====================================================================
+% DIAPOSITIVA 6: 5. MODELOS DE COMUNICACIÓN + PRÁCTICA 2 (JEREMY — LIMPIA)
+% =====================================================================
+\begin{frame}{5. Modelos de Comunicación y Práctica 2 (Luis Jeremy Jaramillo)}
+  \framesubtitle{Cliente--servidor híbrido sobre TCP: puntos clave en Spring Boot \cite{ref3,ref4,petrescu2025iotprotocols}}
+  \vspace{0.10cm}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \begin{column}{0.485\textwidth}
+      \begin{bluecard}{REST Síncrono (\texttt{/api/**})}
+        \footnotesize
+        \begin{itemize}\setlength{\itemsep}{5pt}
+          \item \textbf{Núcleo HTTP/TCP:} JWT/RBAC (\texttt{RS-01}), validación (\texttt{RF-05}) y postulación (\texttt{RF-04}).
+          \item \textbf{Evaluación:} \texttt{@PostMapping} síncrono y auditable.
+          \item \textbf{Externo (\texttt{RF-07}):} \texttt{HttpClient} a RapidAPI (futuro desacoplo AMQP \cite{petrescu2025iotprotocols}).
+        \end{itemize}
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.485\textwidth}
+      \begin{ambercard}{WebSocket (\texttt{/ws-notificaciones})}
+        \footnotesize
+        \begin{itemize}\setlength{\itemsep}{5pt}
+          \item \textbf{Bróker STOMP:} \texttt{/app}, \texttt{/topic}, \texttt{/queue} y respaldo \texttt{withSockJS()}.
+          \item \textbf{Full-Duplex (\texttt{RF-10}):} \texttt{@MessageMapping} + \texttt{@Transactional} (\texttt{Entrevista OK}) \cite{mitrovic2023websocket}.
+          \item \textbf{Por qué WS:} supera a \textit{polling} HTTP y a SSE (solo unidireccional).
+        \end{itemize}
+      \end{ambercard}
+    \end{column}
+  \end{columns}
+  \vspace{0.25cm}
+  \begin{demobar}
+    \textcolor{AmberAccent}{\textbf{Práctica 2 en vivo:}} Recorrido de código real (4 clases Spring Boot) $\rightarrow$ flujo \texttt{RF-10} inspeccionando tramas bidireccionales en DevTools (\texttt{Network} $\rightarrow$ \texttt{WS} $\rightarrow$ \texttt{Messages}).
+  \end{demobar}
+\end{frame}
+
+% =====================================================================
+% DIAPOSITIVA 7: 3. TRANSPARENCIAS DE DISTRIBUCIÓN (HEINER ZAMBRANO)
+% =====================================================================
 \begin{frame}{3. Transparencias de Distribución (Heiner Zambrano)}
-\framesubtitle{Propiedades en JobFinder (1,5 min)}
-\vspace{2pt}
-\begin{columns}[T,totalwidth=\textwidth]
-  \begin{column}{0.485\textwidth}
-    \begin{block}{Garantizadas (SÍ)}
-      \begin{itemize}\setlength{\itemsep}{6pt}
-        \item \textbf{Acceso:} \texttt{/api/**}, \texttt{/ws-notificaciones} (RF-03)
-        \item \textbf{Ubicación:} oculta \texttt{:8080}, \texttt{:5432} y SMTP
-        \item \textbf{Concurrencia:} WS paralelos + ACID en BD
-        \item \textbf{Fallos (parcial):} reintento \textit{scraping} (RF-07)
-      \end{itemize}
-    \end{block}
-  \end{column}
-  \begin{column}{0.485\textwidth}
-    \begin{alertblock}{Limitaciones (NO)}
-      \begin{itemize}\setlength{\itemsep}{6pt}
-        \item \textbf{Origen:} etiqueta ``Sitios Externos''
-        \item \textbf{Tiempo:} validación pendiente (RF-05) y sync periódica (RF-07)
-        \item \textbf{Fallos visibles:} cortes en red móvil (reconexión WS) y SMTP
-      \end{itemize}
-    \end{alertblock}
-  \end{column}
-\end{columns}
+  \framesubtitle{Propiedades garantizadas y limitaciones en JobFinder}
+  \vspace{0.12cm}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \begin{column}{0.485\textwidth}
+      \begin{bluecard}{Acceso Unificado (SÍ)}
+        \footnotesize Rutas \texttt{/api/**} y \texttt{/ws-notificaciones} abstraen protocolos internos.
+      \end{bluecard}
+      \vspace{0.25cm}
+      \begin{bluecard}{Concurrencia Activa (SÍ)}
+        \footnotesize Múltiples sesiones WebSocket en paralelo + ACID en PostgreSQL.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.485\textwidth}
+      \begin{bluecard}{Ubicación Oculta (SÍ)}
+        \footnotesize Puertos internos (\texttt{:5432}, \texttt{:8080}, \texttt{:587}) invisibles al cliente.
+      \end{bluecard}
+      \vspace{0.25cm}
+      \begin{ambercard}{Fallos Explícitos (NO)}
+        \footnotesize Cortes abruptos en red móvil exigen reconexión visible del cliente.
+      \end{ambercard}
+    \end{column}
+  \end{columns}
 \end{frame}
 
-% ---------------------------------------------------------------------
-% SECCIÓN 4 — CAP Y PACELC (HEINER ZAMBRANO)
-% ---------------------------------------------------------------------
+% =====================================================================
+% DIAPOSITIVA 8: 4. CAP Y PACELC + PRÁCTICA 3 (HEINER ZAMBRANO)
+% =====================================================================
 \begin{frame}{4. Teoremas CAP y PACELC (Heiner Zambrano)}
-\framesubtitle{Compromiso entre Consistencia, Disponibilidad y Latencia (2 min) \cite{ref5}}
-\vspace{4pt}
-\small
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm}
-                             >{\raggedright\arraybackslash}X
-                             >{\raggedright\arraybackslash}X}
-\toprule
-\textbf{Tipo de dato} & \textbf{Con partición (P)} & \textbf{Sin partición (E)} \\
-\midrule
-\textbf{Núcleo transaccional}\newline(\textbf{PC/EC})
-  & Prioriza \textbf{C}: bloquea escrituras si no hay acceso a PostgreSQL (RF-04, RF-05, RNF-02).
-  & Prioriza \textbf{C}: transacciones ACID en PostgreSQL sobre cuentas, postulaciones y auditoría. \\
-\midrule
-\textbf{Catálogo externo y alertas}\newline(\textbf{PA/EL})
-  & Prioriza \textbf{A}: si el portal externo queda inaccesible, muestra las últimas ofertas importadas.
-  & Prioriza \textbf{L}: alertas rápidas por WebSocket y sincronización periódica del catálogo (RF-07). \\
-\bottomrule
-\end{tabularx}
-
-\vspace{12pt}
-\textbf{Demo en vivo:} pérdida de acceso a PostgreSQL (\texttt{:5432}) bloqueando escrituras (\texttt{BLOQUEO CAP}).
+  \framesubtitle{Compromiso entre consistencia, disponibilidad y latencia \cite{ref5}}
+  \vspace{0.15cm}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \begin{column}{0.485\textwidth}
+      \begin{bluecard}{CP --- Con Partición de Red (P)}
+        \textbf{Prioridad: Consistencia (C)}\par
+        \vspace{0.15cm}
+        \footnotesize Ante pérdida de enlace con \texttt{BolsaEmpleoNew}, se bloquean escrituras de postulación para evitar duplicados o vacantes sin validar.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.485\textwidth}
+      \begin{ambercard}{EL / EC --- Operación Normal (E)}
+        \textbf{Prioridad: Latencia (L) y Consistencia (C)}\par
+        \vspace{0.15cm}
+        \footnotesize Sin particiones, prioriza baja latencia en alertas WebSocket (\textbf{PA/EL}) e integridad ACID multi-esquema en PostgreSQL (\textbf{PC/EC}).
+      \end{ambercard}
+    \end{column}
+  \end{columns}
+  \vspace{0.4cm}
+  \begin{demobar}
+    \textcolor{AmberAccent}{\textbf{Práctica 3 en vivo:}} Partición hacia PostgreSQL (\texttt{:5432}) bloqueando escrituras (\texttt{BLOQUEO CAP}) mientras lectura en caché responde en $< 5$\,ms.
+  \end{demobar}
 \end{frame}
 
-% ---------------------------------------------------------------------
-% SECCIÓN 5 — MODELOS DE COMUNICACIÓN (LUIS PACA)
-% ---------------------------------------------------------------------
-\begin{frame}{5. Modelos de Comunicación (Luis Paca)}
-\framesubtitle{Cliente--servidor híbrido: síncrono, asíncrono y tiempo real (1,5 min)}
-\vspace{2pt}
-\small
-\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.9cm}
-                             >{\raggedright\arraybackslash}p{3.1cm}
-                             >{\raggedright\arraybackslash}X}
-\toprule
-Modo / Canal & \textbf{Protocolo} & \textbf{Uso en JobFinder y sustento} \\
-\midrule
-Síncrono (núcleo)
-  & HTTP/REST (TCP)
-  & Búsqueda, postulación y validación sin P2P; sensible a retardo y seguridad Wi-Fi \cite{guo2025tcpudp,ref2}. \\
-\midrule
-Tiempo real (RI-05)
-  & WebSocket (RFC 6455)
-  & Alertas en \texttt{/ws-notificaciones}; canal \textit{full-duplex} con menor latencia que \textit{polling} \cite{ref3,mitrovic2023websocket}. \\
-\midrule
-Asíncrono (RF-06, RF-07)
-  & Tareas + SMTP; AMQP (propuesta)
-  & \textit{Scraping} y correo sin bloqueo; el equipo propone un \textit{broker} con colas AMQP para desacoplar productor--consumidor \cite{petrescu2025iotprotocols,bayilmis2022survey}. \\
-\midrule
-Transporte futuro
-  & QUIC (UDP)
-  & Evita el bloqueo HoL de TCP \cite{jeddou2023tcpquic,kumar2025kquic} (no requerido hoy). \\
-\bottomrule
-\end{tabularx}
-
-\vspace{6pt}
-{\footnotesize \textbf{Por qué este modelo:} alcance institucional, acceso desde cualquier navegador (RI-01) y auditoría directa (RNF-02).}
+% =====================================================================
+% DIAPOSITIVA 9: 6. TOLERANCIA A FALLOS + PRÁCTICA 4 (LUIS ALBERTO PACA)
+% =====================================================================
+\begin{frame}{6. Tolerancia a Fallos y Práctica 4 (Luis Alberto Paca)}
+  \framesubtitle{Detección activa, aislamiento y recuperación escalonada \cite{mitrovic2023websocket,ref4}}
+  \vspace{0.15cm}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \begin{column}{0.315\textwidth}
+      \begin{bluecard}{Heartbeats PING/PONG}
+        \footnotesize Sondeo TCP activo cada 5\,s para detectar y liberar sockets inactivos.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.315\textwidth}
+      \begin{bluecard}{Aislamiento FORM-AC-01}
+        \footnotesize Desacoplar la consulta externa (\texttt{RF-07}) evita bloqueos en cascada del servidor.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.315\textwidth}
+      \begin{ambercard}{Backoff Exponencial}
+        \footnotesize Reintentos escalonados en 1\,s, 2\,s, 4\,s y 8\,s tras una caída del backend.
+      \end{ambercard}
+    \end{column}
+  \end{columns}
+  \vspace{0.45cm}
+  \begin{demobar}
+    \textcolor{AmberAccent}{\textbf{Práctica 4 en vivo:}} Detención forzada del servidor WebSocket (\texttt{Ctrl+C}) y reconexión automática escalonada al reiniciar.
+  \end{demobar}
 \end{frame}
 
-% ---------------------------------------------------------------------
-% SECCIÓN 6 — TOLERANCIA A FALLOS (LUIS PACA)
-% ---------------------------------------------------------------------
-\begin{frame}{6. Tolerancia a Fallos (Luis Paca)}
-\framesubtitle{Modelos de fallo, detección y recuperación (2 min)}
-\vspace{2pt}
-\small
-\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.7cm}
-                             >{\raggedright\arraybackslash}p{4.3cm}
-                             >{\raggedright\arraybackslash}X}
-\toprule
-Modelo de fallo & \textbf{Escenario en JobFinder} & \textbf{Detección y recuperación} \\
-\midrule
-Omisión
-  & Portal caído / HTML alterado; fallo temporal SMTP.
-  & \textit{Timeouts} y auditoría (RNF-02); reintento programado (RF-07) y cola de reenvío SMTP. \\
-\midrule
-Temporización
-  & Ofertas externas expiradas; cortes WebSocket.
-  & Comprobación de vigencia (RF-07); baja automática y reconexión WS / \textit{long polling} \cite{mitrovic2023websocket}. \\
-\midrule
-\textit{Crash-stop} y usuario
-  & Caída de \texttt{:8080} o \texttt{:5432}; errores de registro (RU-07).
-  & Validaciones y estado de servicio; respaldos periódicos para meta de 99,5\,\% (RNF-01). \\
-\bottomrule
-\end{tabularx}
-
-\vspace{8pt}
-{\footnotesize \textbf{Evolución sin caídas:} versionado retrocompatible de API y servicios para desplegar cambios sin afectar el núcleo \cite{ref4}.}
+% =====================================================================
+% DIAPOSITIVA 10: 7. COMPARACIÓN Y POSTURA CRÍTICA (LUIS ALBERTO PACA)
+% =====================================================================
+\begin{frame}{7. Comparación y Postura Crítica (Luis Alberto Paca)}
+  \framesubtitle{JobFinder frente a portales laborales comerciales \cite{linkedinFeedInfra,linkedin2025northguard,ref1}}
+  \vspace{0.15cm}
+  \begin{tcolorbox}[enhanced,colback=white,colframe=CardBorder,boxrule=0.6pt,arc=4pt,left=4pt,right=4pt,top=4pt,bottom=4pt]
+    \small
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabularx}{\linewidth}{@{}>{\bfseries\color{NavyDark}\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+      \rowcolor{NavyDark}
+      \textcolor{white}{Criterio Técnico} & \textcolor{white}{\textbf{JobFinder UTEQ}} & \textcolor{white}{\textbf{LinkedIn / CompuTrabajo}} \\
+      Validación de ofertas & Control administrativo previo (\texttt{RF-05}) & Publicación abierta sin filtro institucional \\
+      \rowcolor{RowAlt}
+      Notificaciones & Push bidireccional vía WebSockets & Correo electrónico o consulta periódica \\
+      Pertinencia curricular & Filtrado por carreras de la UTEQ & Ofertas genéricas masivas \\
+      \rowcolor{RowAlt}
+      Compromiso (\textit{Trade-off}) & Mayor RAM por sockets TCP abiertos & Menor memoria en APIs sin estado \\
+    \end{tabularx}
+  \end{tcolorbox}
 \end{frame}
 
-\begin{frame}{6. Incidente y Análisis de Causas Raíz (Luis Paca)}
-\framesubtitle{FORM-AC-01: Ofertas externas expiradas o ya cubiertas}
-\vspace{2pt}
-\small
-\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.1cm}
-                             >{\raggedright\arraybackslash}X}
-\toprule
-Problema & El graduado postula a una oferta ya inexistente en el origen. \\
-Causa inmediata & El catálogo local solo se actualiza en cada ciclo de \textit{scraping}. \\
-Causa raíz & Sin control sobre el origen; consistencia eventual por diseño (\textbf{PA/EL}). \\
-Acción correctiva & Sincronización que desactiva ofertas no vigentes (RF-07). \\
-Acción preventiva & Etiqueta ``Sitios Externos'', fecha de verificación y prioridad a ofertas validadas (RF-05). \\
-Verificación & Auditoría de importaciones (RNF-02, RP-04) y prueba de baja automática tras retiro en origen. \\
-\bottomrule
-\end{tabularx}
-
-\vspace{6pt}
-{\footnotesize Versionar contratos entre servicios permite ajustar la ingesta sin interrumpir el núcleo \cite{ref4}.}
+% =====================================================================
+% DIAPOSITIVA 11: 8. LECCIONES PARA EL PFC (LUIS ALBERTO PACA)
+% =====================================================================
+\begin{frame}{8. Lecciones para el PFC y Conclusiones (Luis Alberto Paca)}
+  \framesubtitle{Controles arquitectónicos para la entrega TA-PFC-E1 \cite{ref4,petrescu2025iotprotocols}}
+  \vspace{0.15cm}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \begin{column}{0.315\textwidth}
+      \begin{bluecard}{Contenedores Aislados}
+        \footnotesize Migrar la integración externa (\texttt{RF-07}) a un \textit{worker} Docker con colas AMQP.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.315\textwidth}
+      \begin{bluecard}{Control de Sesiones}
+        \footnotesize Configurar tramas \texttt{PING/PONG}, \textit{timeouts} y límites de tasa por socket TCP.
+      \end{bluecard}
+    \end{column}
+    \begin{column}{0.315\textwidth}
+      \begin{ambercard}{Auditoría Externa}
+        \footnotesize Desacoplar registros de \texttt{seguridad.auditoria} y respaldos de la red pública.
+      \end{ambercard}
+    \end{column}
+  \end{columns}
+  \vspace{0.45cm}
+  \begin{demobar}
+    \textcolor{AmberAccent}{\textbf{Conclusión:}} WebSockets sobre TCP ofrece el equilibrio óptimo entre baja latencia y entrega ordenada para seguimiento laboral en tiempo real.
+  \end{demobar}
 \end{frame}
 
-% ---------------------------------------------------------------------
-% SECCIÓN 7 — COMPARACIÓN Y POSTURA CRÍTICA (JEREMY JARAMILLO)
-% ---------------------------------------------------------------------
-\begin{frame}{7. Comparación y Postura Crítica (Jeremy Jaramillo)}
-\framesubtitle{JobFinder (UTEQ) frente a LinkedIn (1 min)}
-\vspace{2pt}
-\footnotesize
-\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.5cm}
-                             >{\raggedright\arraybackslash}X
-                             >{\raggedright\arraybackslash}X}
-\toprule
-Criterio & \textbf{JobFinder (UTEQ)} & \textbf{LinkedIn} \\
-\midrule
-Alcance e infraestructura
-  & Escala universitaria; backend único (\texttt{:8080}) sobre PostgreSQL (\texttt{:5432}).
-  & Escala global; sistemas distribuidos de \textit{feed} y búsqueda \cite{linkedinFeedInfra} y plataforma de eventos Kafka/Northguard \cite{linkedin2025northguard}. \\
-\midrule
-Gestión de datos
-  & Núcleo \textbf{PC/EC} (ACID, validación RF-05); catálogo externo \textbf{PA/EL}.
-  & Almacenes e índices distribuidos para \textit{feed}, búsqueda y recomendación \cite{linkedinFeedInfra,ref1}; \textit{logs} virtualizados con Xinfra \cite{linkedin2025northguard}. \\
-\midrule
-Tolerancia a fallos
-  & Punto único de fallo en \texttt{:8080} y \texttt{:5432}; mitigación por respaldos (RNF-01).
-  & Replicación por segmentos, metadatos distribuidos con Raft en Northguard y enrutamiento transparente con Xinfra \cite{linkedin2025northguard}. \\
-\bottomrule
-\end{tabularx}
-
-\vspace{6pt}
-\textbf{Postura crítica:} conservar la integridad \textbf{PC/EC} del núcleo de JobFinder y desacoplar la ingesta externa y las alertas mediante mensajería asíncrona, sin caer en sobreingeniería \cite{ref4,petrescu2025iotprotocols}.
-\end{frame}
-
-% ---------------------------------------------------------------------
-% SECCIÓN 8 — LECCIONES PARA EL PFC Y CONCLUSIONES (JEREMY JARAMILLO)
-% ---------------------------------------------------------------------
-\begin{frame}{8. Lecciones para el PFC y Conclusiones (Jeremy Jaramillo)}
-\framesubtitle{Decisiones arquitectónicas y cierre (1 min)}
-\vspace{2pt}
-\begin{block}{Decisiones que aplicaremos en el PFC}
-  \begin{itemize}\setlength{\itemsep}{5pt}
-    \item \textbf{Arquitectura desacoplada:} \textit{API Gateway} y servicios separados (\texttt{Perfiles}, \texttt{Ofertas}, \texttt{Postulaciones}, \texttt{Ingesta} y \texttt{Notificaciones}) con contratos versionados \cite{ref4}.
-    \item \textbf{Comunicación diferenciada:} gRPC interno síncrono en el núcleo y propuesta de \textit{broker} con colas AMQP para ingesta y alertas \cite{petrescu2025iotprotocols}.
-    \item \textbf{Consistencia y verificación:} conservar \textbf{PC/EC} en PostgreSQL (causal+ si escala entre sedes \cite{ref5}) y validar con corte de acceso a \texttt{:5432} y reconexión WebSocket \cite{ref3}.
-  \end{itemize}
-\end{block}
-
-\vspace{6pt}
-\begin{alertblock}{Conclusión --- Riesgo principal identificado}
-  En JobFinder el riesgo principal no es el volumen de usuarios, sino el \textbf{acoplamiento de la ingesta externa (\textit{scraping}) y el correo (SMTP) con el núcleo transaccional} en PostgreSQL, problema que guía el diseño del PFC.
-\end{alertblock}
-\end{frame}
-
-% ---------------------------------------------------------------------
-% REFERENCIAS (IEEE con biblatex)
-% ---------------------------------------------------------------------
-\begin{frame}[allowframebreaks]{Referencias}
-  \footnotesize
+% =====================================================================
+% DIAPOSITIVA 12: REFERENCIAS BIBLIOGRÁFICAS (IEEE)
+% =====================================================================
+\begin{frame}[allowframebreaks]{Referencias Bibliográficas (Formato IEEE)}
+  \framesubtitle{Fuentes verificadas del estudio}
+  \renewcommand*{\bibfont}{\scriptsize}
   \printbibliography[heading=none]
+\end{frame}
+
+% =====================================================================
+% DIAPOSITIVA 13: CIERRE KEYNOTE FULL-BLEED
+% =====================================================================
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[NavyDark] (current page.south west) rectangle (current page.north east);
+    \fill[BlueAccent] (current page.south west) rectangle ([xshift=0.35cm]current page.north west);
+    \fill[AmberAccent] ([xshift=-4.2cm,yshift=0.12cm]current page.south east) rectangle (current page.south east);
+    \fill[NavySoft,opacity=0.45] ([xshift=-3.6cm]current page.north east) -- (current page.north east) -- (current page.south east) -- ([xshift=-1.4cm]current page.south east) -- cycle;
+  \end{tikzpicture}
+  \vspace{2.0cm}
+  \centering
+  {\footnotesize\bfseries\textcolor{AmberAccent}{9. DEFENSA TÉCNICA \;\textbullet\; EQUIPO EJPZ}}\par
+  \vspace{0.4cm}
+  {\Huge\bfseries\textcolor{white}{Preguntas y Discusión}}\par
+  \vspace{0.55cm}
+  {\color{BlueAccent}\rule{2.4cm}{1.5pt}}\par
+  \vspace{0.55cm}
+  {\normalsize\textcolor{white}{Kenny España \;\textbullet\; Luis Jeremy Jaramillo \;\textbullet\; Heiner Zambrano \;\textbullet\; Luis Alberto Paca}}\par
+  \vspace{0.2cm}
+  {\footnotesize\textcolor{CardBorder}{Aplicaciones Distribuidas (Paralelo A) \;\textbullet\; Facultad de Ciencias de la Computación --- UTEQ}}
 \end{frame}
 
 \end{document}
