@@ -49,366 +49,232 @@
   {\large\bfseries UNIVERSIDAD TÉCNICA ESTATAL DE QUEVEDO}\\[2pt]
   Facultad de Ciencias de la Computación y Diseño Digital\\
   Carrera de Software \quad|\quad Paralelo: A\\[8pt]
-  {\Large\bfseries Bolsa de Empleos para Graduados UTEQ}\\[2pt]
-  {\normalsize Análisis como sistema distribuido — Notas de presentación}\\[6pt]
+  {\Large\bfseries WebSockets, TCP y UDP en JobFinder}\\[2pt]
+  {\normalsize Comunicación en tiempo real aplicada a la Bolsa de Empleos para
+  Graduados — Notas de presentación}\\[6pt]
   \textbf{Actividad:} GA-SUM-02 / EXP-1\\[2pt]
-  \textbf{Equipo EJPZ:} Kenny España Vera, Jeremy Jaramillo Acosta,
-  Heiner Zambrano Ronquillo, Luis Paca Pilataza\\[2pt]
+  \textbf{Equipo EJPZ:} Kenny Isaías España Vera, Luis Jeremy Jaramillo Acosta,
+  Heiner Ariel Zambrano Ronquillo, Luis Alberto Paca Pilataza\\[2pt]
   \textbf{Fecha:} 21 de noviembre de 2026
 \end{center}
 \vspace{-4pt}\noindent\rule{\linewidth}{0.4pt}
 
 % =====================================================================
-\section{Presentación del sistema \expo{1 min}{Kenny España}}
+%  CUERPO — sigue el mismo orden y reparto de las diapositivas
+%  Tiempos: Kenny 2,5 min · Jeremy 3 min · Heiner 3 min · Luis 3,5 min = 12 min
 % =====================================================================
-\textbf{Qué problema resuelve.} La UTEQ no cuenta con una bolsa de empleo oficial
-y sus canales institucionales casi no ayudan a la inserción laboral. La plataforma
-centraliza en un solo sitio web las ofertas publicadas por empresas colaboradoras
-(validadas por un administrador antes de publicarse) y las ofertas importadas de
-portales externos mediante \textit{web scraping}, mostradas en una sección
-diferenciada. La idea de conectar graduados con empleadores
-según su perfil se apoya en trabajos de recomendación recíproca de empleo para
-recién graduados \cite{ref1}.
+\section*{1. Presentación del sistema \expo{1 min}{Kenny España}}
+\textbf{Qué problema resuelve.} La UTEQ no tiene una bolsa de empleo oficial que
+reúna en un solo lugar las vacantes de empresas colaboradoras, validadas por un
+administrador, y las ofertas externas sincronizadas para sus graduados. La idea de
+emparejar el perfil del graduado con la vacante se apoya en trabajos de
+recomendación de empleo para recién graduados \cite{ref1}.
 
-\textbf{Quién lo usa.} Tres actores: \emph{graduados} (perfil, búsqueda,
-postulación, favoritos, alertas), \emph{empresas colaboradoras} (publican ofertas y
-gestionan postulantes) y el \emph{administrador} UTEQ (valida ofertas, administra
-usuarios, reportes y auditoría).
+\textbf{Quién lo usa.} Tres roles: \emph{graduado} (busca, postula y recibe
+alertas), \emph{empresa colaboradora} (publica ofertas y gestiona postulantes) y
+\emph{administrador UTEQ} (valida ofertas, audita y genera reportes).
 
-\textbf{A qué escala opera (cifras citadas).}
+\textbf{A qué escala opera.} Según el seguimiento a graduados de la UTEQ, el
+51,50\,\% de los graduados está trabajando y apenas el 8,41\,\% consiguió su
+empleo por bolsas de empleo \cite{uteq2022seguimiento}. Como contexto nacional,
+en mayo de 2025 el subempleo en Ecuador fue de 20,9\,\% \cite{inec2025enemduMayo}.
+La escala es institucional (una universidad), con meta de disponibilidad de
+99,5\,\% durante el ciclo académico (RNF-01).
+
+% =====================================================================
+\section*{Fundamentos: TCP, UDP y WebSocket \expo{1,5 min}{Kenny España}}
+\textbf{TCP frente a UDP.} TCP abre la conexión con el saludo de tres vías y
+garantiza entrega ordenada con acuses \texttt{ACK} y retransmisión; UDP envía
+datagramas sin sesión previa ni retransmisión. Su rendimiento depende del retardo,
+del ancho de banda y hasta de la seguridad Wi-Fi usada \cite{guo2025tcpudp,ref2}.
+JobFinder adopta \textbf{TCP} porque perder una postulación o el aviso de una
+entrevista no es aceptable; UDP queda para multimedia o telemetría que tolera
+pérdidas \cite{bayilmis2022survey}. QUIC, que corre sobre UDP, muestra ventajas y
+costos según el enlace, pero no es requisito actual \cite{jeddou2023tcpquic,kumar2025kquic}.
+
+\textbf{Ciclo WebSocket (RFC 6455).} (1) El cliente envía una petición HTTP con
+\texttt{Upgrade: websocket}; (2) el servidor responde \texttt{101 Switching
+Protocols}; (3) desde ahí ambos intercambian tramas ligeras \textit{full-duplex}
+sobre la misma conexión TCP, sin repetir cabeceras HTTP \cite{ref3,mitrovic2023websocket}.
+
+\textit{Práctica 1 (en vivo):} ejecutar \texttt{demo\_udp.js} en la terminal para
+enviar datagramas UDP y luego mostrar en Chrome DevTools la respuesta
+\texttt{HTTP 101} de la sesión WebSocket.
+
+% =====================================================================
+\section*{2. Arquitectura \expo{1,5 min}{Jeremy Jaramillo}}
+El diagrama de la Figura~\ref{fig:arq} lo elaboramos en draw.io a partir del boceto
+a mano (Anexo~A). Tiene tres bloques que se comunican sobre TCP:
 \begin{itemize}
-  \item Contexto nacional (INEC, mayo de 2025): la tasa de subempleo a nivel
-        nacional fue de 20,9\,\% y la de desempleo de 4,1\,\% de la población
-        económicamente activa \cite{inec2025enemduMayo}.
-  \item Seguimiento a graduados UTEQ 2022: el 51,50\,\% de los graduados se
-        encuentra trabajando; de ellos, el 55\,\% consiguió su primer empleo por
-        recomendación personal y apenas el 8,41\,\% por bolsas de empleo
-        \cite{uteq2022seguimiento}.
-  \item Escala institucional (una universidad) con meta de disponibilidad de
-        99,5\,\% durante el ciclo académico (RNF-01).
-        \textit{Nota para el expositor: el sistema está en fase de requisitos y
-        prototipo; no es un servicio masivo como LinkedIn o Indeed.}
+  \item \textbf{Clientes web (Angular, \texttt{:4200}):} graduado (RF-04, RF-06,
+        RF-10), empresa colaboradora (RF-05, RF-10) y administrador (RF-05, RF-11).
+  \item \textbf{Backend Spring Boot (\texttt{:8080}):} API REST síncrona
+        \texttt{/api/**} con JWT y roles RBAC (RS-01); módulo WebSocket y
+        notificaciones (hoy STOMP/SockJS en \texttt{/ws-notificaciones}, en la demo
+        \texttt{ws://} puro con \textit{heartbeats} cada 5\,s); y servicio de
+        integración externa \texttt{JSearchRapidApiService} (RF-07).
+  \item \textbf{Datos y externos:} PostgreSQL (\texttt{:5432}, base
+        \texttt{BolsaEmpleoNew}, multi-esquema ACID y \texttt{seguridad.auditoria})
+        vía JDBC/HikariCP; servidor SMTP (\texttt{smtp.gmail.com:587},
+        \texttt{EmailService}, RF-06); y la API JSearch de RapidAPI por HTTPS.
 \end{itemize}
-
-% =====================================================================
-\section{Arquitectura \expo{2 min}{Kenny España}}
-% =====================================================================
-\textbf{Componentes} (derivados de los requisitos RF-01 a RF-11 y RNF-01 a RNF-03
-del proyecto):
-\begin{enumerate}
-  \item \textbf{Cliente web responsivo} (RI-01): interfaz para graduados, empresas y
-        panel de administración.
-  \item \textbf{API de aplicación}: módulos de usuarios y autenticación (RF-01, RS-01),
-        ofertas y validación (RF-05, RF-09), postulaciones (RF-04, RF-10),
-        favoritos (RF-08) y reportes (RF-11).
-  \item \textbf{Servicio de importación de ofertas externas}: tarea programada que
-        hace \textit{scraping}, normaliza las ofertas y desactiva las que ya no
-        están vigentes (RF-07).
-  \item \textbf{Módulo WebSocket y notificaciones} (\texttt{/ws-notificaciones}):
-        empuja alertas en tiempo real a la interfaz (RI-05, RF-10) y envía por
-        correo SMTP las ofertas que coinciden con el perfil (RF-06).
-  \item \textbf{Base de datos relacional} (modelo ER del proyecto) y
-        \textbf{registro de auditoría} (RNF-02, RP-04).
-  \item \textbf{Sistemas externos}: portales de empleo de origen y servidor de
-        correo SMTP.
-\end{enumerate}
-
-\textbf{Cómo se comunican.} El cliente habla con la API por HTTPS (petición–respuesta
-sobre TCP) y la API consulta PostgreSQL por SQL. Además, el cliente mantiene una
-conexión WebSocket persistente con el backend para recibir alertas sin recargar.
-El \textit{worker} de \textit{scraping} consulta los portales externos de forma
-periódica, guarda las ofertas en la base de datos y avisa al módulo de
-notificaciones, que las empuja por WebSocket y las envía por SMTP de forma
-asíncrona. Separar los servicios permite que cada uno evolucione por su cuenta,
-siempre que se mantenga la compatibilidad de versiones entre ellos \cite{ref4}.
+\textbf{Deuda técnica:} \texttt{JSearchRapidApiService} corre de forma síncrona
+dentro del mismo proceso \texttt{:8080}. En el PFC (\texttt{TA-PFC-E1}) se aislará
+en un \textit{worker} Docker, manteniendo contratos de API compatibles hacia atrás
+para no romper a los servicios que lo consumen \cite{ref4}.
 
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}[
-  node distance=7mm and 12mm,
-  box/.style={draw,rounded corners,align=center,font=\footnotesize,
-              minimum width=30mm,minimum height=9mm,fill=white},
-  ext/.style={box,dashed,fill=gray!8},
-  arr/.style={-{Latex[length=2mm]},thick},
-  aarr/.style={-{Latex[length=2mm]},thick,dashed}]
-  \node[box] (cli) {\textbf{Cliente web}\\graduado / empresa / admin};
-  \node[box,right=of cli] (api) {\textbf{API REST}\\\texttt{/api/**} (:8080)};
-  \node[box,right=of api] (db) {\textbf{PostgreSQL} (:5432)\\datos + auditoría};
-  \node[box,below=of api] (ws) {\textbf{Módulo WebSocket}\\\texttt{/ws-notificaciones}};
-  \node[box,below=of ws] (scr) {\textbf{Worker de scraping}\\(programado, RF-07)};
-  \node[ext,right=of scr] (por) {Portales externos\\de empleo};
-  \node[ext,right=of ws] (smtp) {Servidor SMTP\\(:587)};
-  \draw[arr] (cli) -- node[above,font=\scriptsize]{HTTPS} (api);
-  \draw[arr] (api) -- node[above,font=\scriptsize]{SQL} (db);
-  \draw[aarr,<->] (cli.south) |- node[pos=0.75,above,font=\scriptsize]{WebSocket} (ws.west);
-  \draw[aarr] (scr) -- node[above,font=\scriptsize]{HTTPS} (por);
-  \draw[aarr] (scr) -- node[right,font=\scriptsize]{nuevas ofertas} (ws);
-  \draw[aarr] (ws) -- node[above,font=\scriptsize]{correo} (smtp);
-\end{tikzpicture}
-\caption{Arquitectura de JobFinder elaborada por el equipo a partir del boceto a mano
-(Anexo~A). Línea continua: síncrono; discontinua: asíncrono/periódico.}
+\includegraphics[width=\linewidth,keepaspectratio]{arquitectura_jobfinder.png}
+\caption{Arquitectura de JobFinder elaborada por el equipo en draw.io
+(\texttt{Arquitectura\_JobFinder\_Real\_EJPZ.drawio}).}
 \label{fig:arq}
 \end{figure}
 
 % =====================================================================
-\section{Transparencias de distribución \expo{1,5 min}{Heiner Zambrano}}
+\section*{5. Modelos de comunicación \expo{1,5 min}{Jeremy Jaramillo}}
+JobFinder es \textbf{cliente--servidor híbrido sobre TCP}: no hay comunicación
+entre usuarios (P2P); todo pasa por el backend.
+\begin{itemize}
+  \item \textbf{Síncrono (REST, \texttt{/api/**}):} autenticación JWT/RBAC,
+        validación de ofertas (RF-05) y postulación (RF-04) con
+        \texttt{@PostMapping}, en petición--respuesta fácil de auditar. La consulta
+        externa (RF-07) usa \texttt{HttpClient} hacia RapidAPI; a futuro se
+        desacoplará con un \textit{broker} y colas AMQP \cite{petrescu2025iotprotocols}.
+  \item \textbf{Asíncrono y bidireccional (WebSocket, \texttt{/ws-notificaciones}):}
+        bróker STOMP con destinos \texttt{/app}, \texttt{/topic} y \texttt{/queue},
+        y respaldo \texttt{withSockJS()}. En RF-10 la empresa cita a entrevista y el
+        graduado confirma en vivo (\texttt{@MessageMapping} + \texttt{@Transactional}).
+\end{itemize}
+\textbf{Por qué este modelo:} REST da operaciones auditables y funciona en
+cualquier navegador; WebSocket evita el sondeo HTTP. En pruebas sobre ESP32,
+WebSocket alcanzó tiempos entre recepciones de unos 150\,ms frente a unos 350\,ms
+con \textit{long polling} \cite{mitrovic2023websocket}. SSE se descartó porque solo
+envía del servidor al cliente.
+
+\textit{Práctica 2 (en vivo):} recorrido por las 4 clases de Spring Boot y flujo
+RF-10 mostrando las tramas en DevTools (\texttt{Network} $\rightarrow$
+\texttt{WS} $\rightarrow$ \texttt{Messages}).
+
 % =====================================================================
+\section*{3. Transparencias de distribución \expo{1,5 min}{Heiner Zambrano}}
 \textbf{Las que SÍ ofrece:}
 \begin{itemize}
-  \item \textbf{Acceso:} mediante rutas lógicas unificadas (\texttt{/api/**} y
-        \texttt{/ws-notificaciones}), el graduado usa la misma interfaz para buscar
-        ofertas propias y externas; no sabe si el dato viene de la base local o de
-        un proceso de importación. \textit{Ej.:} un solo buscador con filtros (RF-03).
-  \item \textbf{Ubicación:} el usuario entra por un dominio web y desconoce los
-        puertos internos del backend (\texttt{:8080}), la base de datos PostgreSQL
-        (\texttt{:5432}) o el servidor SMTP.
-  \item \textbf{Concurrencia:} múltiples sesiones WebSocket y postulaciones operan
-        en paralelo sobre \texttt{:8080} sin interferencia (verificable en vivo con
-        \texttt{Get-NetTCPConnection}); PostgreSQL serializa las escrituras.
-  \item \textbf{Fallos (parcial):} si un portal externo no responde, la importación
-        se reintenta en la siguiente ejecución y el resto del sistema sigue funcionando.
+  \item \textbf{Acceso:} el cliente solo conoce las rutas \texttt{/api/**} y
+        \texttt{/ws-notificaciones}; no sabe qué protocolo interno las atiende.
+        \textit{Ej.:} un mismo buscador muestra ofertas locales y externas (RF-03).
+  \item \textbf{Ubicación:} los puertos internos \texttt{:8080}, \texttt{:5432} y
+        \texttt{:587} son invisibles para el usuario.
+  \item \textbf{Concurrencia:} varias sesiones WebSocket conviven en paralelo y
+        PostgreSQL mantiene las transacciones ACID. \textit{Ej.:} dos graduados
+        postulan a la vez a la misma oferta sin interferirse.
 \end{itemize}
-\textbf{Las que NO ofrece:}
-\begin{itemize}
-  \item \textbf{Transparencia de origen (decisión de diseño):} las ofertas externas
-        se etiquetan como \textit{``Ofertas de Sitios Externos''} para advertir que
-        son menos confiables o podrían estar expiradas.
-  \item \textbf{Transparencia de tiempo/replicación:} una oferta de empresa no aparece
-        al instante; queda \emph{pendiente} hasta que el administrador la valida (RF-05),
-        y las externas se actualizan solo en cada sincronización (RF-07).
-  \item \textbf{Fallos visibles (red móvil y correo):} los cortes abruptos en red
-        móvil exigen reconexión visible del cliente WebSocket, y si el SMTP falla la
-        alerta llega tarde o no llega.
-\end{itemize}
+\textbf{La que NO ofrece:} \textbf{fallos}. Un corte abrupto de red móvil cierra
+el WebSocket y el cliente debe reconectarse de forma visible. \textit{Ej.:} la
+alerta llega después de la reconexión, no en el momento.
 
 % =====================================================================
-\section{CAP y PACELC \expo{2 min}{Heiner Zambrano}}
-% =====================================================================
+\section*{4. CAP y PACELC \expo{1,5 min}{Heiner Zambrano}}
 CAP obliga a elegir entre consistencia (C) y disponibilidad (A) cuando hay una
-partición de red (P). PACELC agrega que, \emph{aun sin partición}, se elige entre
-latencia (L) y consistencia (C) \cite{ref5}. La plataforma no toma una
-sola decisión: depende del tipo de dato.
+partición de red (P); PACELC añade que, aun sin partición (E), se elige entre
+latencia (L) y consistencia (C) \cite{ref5}.
+\begin{itemize}
+  \item \textbf{Con partición (P) → C:} si se pierde el enlace con
+        \texttt{BolsaEmpleoNew}, se bloquean las escrituras de postulación para no
+        crear duplicados ni publicar vacantes sin validar.
+  \item \textbf{Sin partición (E) → L y C según el dato:} baja latencia en las
+        alertas WebSocket (\textbf{PA/EL}) e integridad ACID multi-esquema en
+        PostgreSQL para cuentas, postulaciones y auditoría (\textbf{PC/EC}).
+\end{itemize}
+\textbf{Evidencia:} Camilleri \emph{et al.} muestran que sobre un RDBMS se puede
+lograr consistencia causal+ tolerando particiones y reduciendo la latencia en
+operación normal (pág.~6, Anexo~B); sería una opción si JobFinder replicara
+PostgreSQL entre sedes \cite{ref5}.
 
+\textit{Práctica 3 (en vivo):} cortar el acceso a PostgreSQL (\texttt{:5432}) y
+mostrar el \texttt{BLOQUEO CAP} de escrituras mientras la lectura en caché sigue
+respondiendo (menos de 5\,ms en la demo).
+
+% =====================================================================
+\section*{6. Tolerancia a fallos \expo{1,5 min}{Luis Paca}}
+\textbf{Qué fallos soporta:} caída de la conexión WebSocket (red móvil), caída
+del backend, lentitud o caída de la API JSearch y fallo temporal del SMTP.
+
+\textbf{Cómo los detecta:} \textit{heartbeats} \texttt{PING/PONG} cada 5\,s que
+liberan los sockets inactivos, y \textit{timeouts} TCP en las llamadas externas.
+
+\textbf{Cómo se recupera:} el cliente se reconecta con \textit{backoff}
+exponencial (1, 2, 4 y 8\,s) y, si WebSocket no está disponible, SockJS cae a
+\textit{long polling} \cite{mitrovic2023websocket}. La consulta externa (RF-07) se
+aísla para que no bloquee al resto del servidor \cite{ref4}.
+
+\textbf{Análisis de causas raíz (método de FORM-AC-01).} \textit{Caso analizado:}
+riesgo identificado en el código de JobFinder (no hay registro de una caída en
+producción).
 \begin{center}
 \small
-\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.3cm}
+\begin{tabularx}{\linewidth}{>{\bfseries\raggedright\arraybackslash}p{3.1cm}
+                             >{\raggedright\arraybackslash}X}
+\toprule
+Problema & Si la API JSearch responde lento, se degradan las postulaciones y las alertas.\\
+Causa inmediata & \texttt{JSearchRapidApiService} hace una llamada HTTP bloqueante dentro de \texttt{:8080}.\\
+Causa raíz & La dependencia externa está acoplada al proceso principal (mismo despliegue y mismos hilos).\\
+Acción correctiva & \textit{Timeouts} cortos y reintentos con \textit{backoff} en la llamada externa.\\
+Acción preventiva & \textit{Worker} Docker aislado con colas AMQP en el PFC \cite{petrescu2025iotprotocols}.\\
+Verificación & Simular latencia en JSearch y comprobar que \texttt{/api/**} y \texttt{/ws-notificaciones} siguen respondiendo.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textit{Práctica 4 (en vivo):} detener el servidor WebSocket con \texttt{Ctrl+C} y
+mostrar la reconexión automática escalonada al reiniciarlo.
+
+% =====================================================================
+\section*{7. Comparación y postura crítica \expo{1 min}{Luis Paca}}
+Comparamos JobFinder con portales comerciales como LinkedIn y CompuTrabajo. Para
+dimensionar: LinkedIn atiende a más de 1\,200 millones de miembros y su
+plataforma de eventos llegó a mover más de 32 billones de registros al día
+\cite{linkedin2025northguard}; su \textit{feed} y su búsqueda se sirven desde
+índices y almacenes distribuidos \cite{linkedinFeedInfra}.
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{>{\bfseries\raggedright\arraybackslash}p{3.1cm}
                              >{\raggedright\arraybackslash}X
                              >{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Dato} & \textbf{Con partición (C o A)} & \textbf{Sin partición (L o C)}\\
+Criterio & JobFinder (UTEQ) & LinkedIn / CompuTrabajo\\
 \midrule
-Cuentas, postulaciones, validación de ofertas, auditoría
-  & \textbf{C}: ante pérdida de enlace con \texttt{BolsaEmpleoNew} (\texttt{:5432}),
-    se bloquean escrituras antes que registrar una postulación duplicada o publicar
-    una oferta no validada (RF-04, RF-05, RNF-02).
-  & \textbf{C}: transacciones ACID sobre PostgreSQL; se acepta algo más de
-    latencia a cambio de integridad. \\
-\midrule
-Catálogo de ofertas externas y alertas WebSocket
-  & \textbf{A}: se siguen mostrando las últimas ofertas importadas aunque el
-    portal de origen no responda.
-  & \textbf{L}: baja latencia en alertas WebSocket y sincronización periódica
-    (RF-07), con consistencia eventual respecto al sitio original. \\
+Validación de ofertas & Control administrativo previo (RF-05) & Publicación abierta, sin filtro de la universidad\\
+Notificaciones & \textit{Push} bidireccional por WebSocket & Correo o consulta periódica del portal\\
+Pertinencia & Ofertas filtradas por carreras de la UTEQ & Ofertas genéricas y masivas\\
+\textit{Trade-off} & Más RAM por sockets TCP abiertos & Menos memoria con APIs sin estado\\
 \bottomrule
 \end{tabularx}
 \end{center}
+\textbf{Postura crítica:} la fortaleza de JobFinder es la confianza (ofertas
+validadas) y el aviso inmediato; su limitación es la escala, con un único backend
+y una única base de datos. Copiar la infraestructura de LinkedIn sería
+sobreingeniería para una universidad.
 
-\textbf{Clasificación:} núcleo transaccional \textbf{PC/EC}; catálogo externo y
-alertas \textbf{PA/EL}. \textit{Verificación en vivo:} al detener el servicio
-\texttt{postgresql-x64-18} (\texttt{:5432}), el backend (\texttt{:8080}) bloquea
-las escrituras de postulación (bloqueo CAP).
-
-\textbf{Evidencia:}
+% =====================================================================
+\section*{8. Lecciones para el PFC y conclusiones \expo{1 min}{Luis Paca}}
+\textbf{Decisiones que aplicaremos en el PFC (\texttt{TA-PFC-E1}):}
 \begin{itemize}
-  \item Bajo el marco CAP/PACELC analizado en la literatura reciente, la elección
-        latencia--consistencia en operación normal tiene tanto peso en el diseño
-        como la elección ante particiones \cite{ref5}.
-  \item Existen puntos intermedios: Camilleri \emph{et al.} implementan un DBMS
-        distribuido escalable horizontalmente sobre un RDBMS con \emph{consistencia
-        causal+} mediante el modelo de actores; en línea con PACELC, minimiza la
-        latencia en operación normal tolerando fallos de nodos y particiones
-        \cite{ref5} (pág.~6, ver Anexo~B). Sería una opción viable si JobFinder
-        necesitara replicar PostgreSQL entre sedes.
-  \item En las entrevistas del levantamiento de requisitos del proyecto, el decano
-        advirtió que el \textit{scraping} puede traer información expirada; eso
-        confirma que el catálogo externo nunca es fuertemente consistente.
+  \item \textbf{Contenedores aislados:} mover la integración externa (RF-07) a un
+        \textit{worker} Docker con colas AMQP \cite{petrescu2025iotprotocols}, con
+        contratos versionados \cite{ref4}.
+  \item \textbf{Control de sesiones:} \texttt{PING/PONG}, \textit{timeouts} y
+        límites de tasa por socket TCP.
+  \item \textbf{Auditoría externa:} separar los registros de
+        \texttt{seguridad.auditoria} y los respaldos de la red pública.
 \end{itemize}
+\textbf{Conclusiones:} WebSocket sobre TCP da el mejor equilibrio entre baja
+latencia y entrega ordenada para el seguimiento laboral en tiempo real. El mayor
+riesgo de JobFinder no es el volumen de usuarios, sino el acoplamiento de
+dependencias externas (JSearch y SMTP) con el núcleo transaccional.
 
 % =====================================================================
-\section{Modelos de comunicación \expo{1,5 min}{Luis Paca}}
-% =====================================================================
-\begin{itemize}
-  \item \textbf{Arquitectura:} \emph{cliente--servidor}. No hay comunicación
-        P2P entre usuarios; toda interacción pasa por la API.
-  \item \textbf{Sincrónico:} búsqueda, postulación, validación y reportes usan
-        petición--respuesta HTTP/REST sobre TCP. TCP garantiza entrega ordenada
-        y fiable, pero su rendimiento depende del ancho de banda y del retardo de la
-        red \cite{guo2025tcpudp}; en Wi-Fi, incluso los protocolos de seguridad
-        (WPA2/WPA3) afectan el \textit{throughput} de TCP y UDP \cite{ref2}.
-  \item \textbf{Asincrónico:} la importación de ofertas (tarea programada) y las
-        alertas por correo (RF-06) no bloquean al usuario. La literatura sobre
-        protocolos de mensajería ---como MQTT para el desacoplamiento entre
-        productores y consumidores y AMQP basado en \textit{broker} y colas---
-        resume cuándo conviene desacoplar emisor y receptor
-        \cite{petrescu2025iotprotocols,bayilmis2022survey}; como propuesta del
-        equipo para JobFinder, se plantea adoptar un \textit{broker} con colas AMQP
-        en la evolución del sistema.
-  \item \textbf{Sockets / RPC / mensajería:} REST (estilo RPC sobre HTTP) para el
-        núcleo; mensajería/cola para notificaciones. Para alertas \emph{dentro de la
-        interfaz} (RI-05) se propone \textbf{WebSocket} (RFC 6455): canal
-        \emph{full-duplex} sobre una conexión TCP persistente, con menor latencia
-        que el sondeo HTTP \cite{ref3,mitrovic2023websocket}.
-  \item \textbf{Transporte a futuro:} QUIC (sobre UDP) evita el bloqueo de
-        cabecera de línea de TCP; las mediciones muestran ventajas y costos según
-        el enlace y la implementación \cite{jeddou2023tcpquic,kumar2025kquic}.
-        Por ahora no es requisito.
-\end{itemize}
-\textbf{Por qué este modelo:} el alcance es académico e institucional. HTTP/REST
-funciona en cualquier navegador sin instalar nada (RI-01) y es más fácil de auditar
-(RNF-02). Además, la asincronía queda solo donde hay esperas largas o dependencias
-externas (scraping y correo).
-
-% =====================================================================
-\section{Tolerancia a fallos \expo{2 min}{Luis Paca}}
-% =====================================================================
-\textbf{Qué fallos soporta y modelo de fallo:}
-\begin{itemize}
-  \item \textbf{Omisión:} portal externo caído o con HTML modificado durante el
-        \textit{scraping}; fallo temporal del servidor SMTP (alertas pendientes).
-  \item \textbf{Temporización:} desfase de ofertas externas ya cubiertas en el sitio
-        de origen y cortes de la conexión WebSocket en tiempo real.
-  \item \textbf{\textit{Crash-stop} (mitigación por respaldo):} detención inesperada
-        del nodo de backend (\texttt{:8080}) o de PostgreSQL (\texttt{:5432}), además
-        de errores de usuario al registrar datos (RU-07).
-\end{itemize}
-\textbf{Cómo los detecta:} registro de auditoría de acciones críticas (RNF-02,
-RP-04), estado de cada ejecución de importación (éxito/error y número de ofertas),
-comprobación de vigencia en cada sincronización (RF-07), \textit{timeouts} en las
-llamadas a portales y SMTP, y validaciones en formularios.
-
-\textbf{Cómo se recupera:}
-\begin{itemize}
-  \item \textbf{Scraping:} reintento en la siguiente ejecución programada; las ofertas
-        que ya no están vigentes se desactivan automáticamente (RF-07).
-  \item \textbf{Correo:} las alertas quedan en cola y se reenvían cuando el SMTP vuelve.
-  \item \textbf{Tiempo real:} si se pierde el WebSocket, el cliente se reconecta y,
-        si no puede, cae a \textit{long polling} \cite{mitrovic2023websocket}.
-  \item \textbf{Evolución sin caídas:} versionar la API y los servicios manteniendo
-        compatibilidad hacia atrás, como plantea la orquestación de versiones para
-        microservicios resilientes \cite{ref4}.
-  \item \textbf{Datos:} respaldos periódicos de la base de datos para cumplir el
-        99,5\,\% de disponibilidad (RNF-01).
-\end{itemize}
-
-\textbf{Incidente documentado y análisis de causas raíz (FORM-AC-01).}
-\textit{Caso:} riesgo de publicar ofertas externas expiradas o ya adquiridas.
-Lo identificó Suárez en su sistema de \textit{web mining} y lo ratificó el decano
-en las entrevistas del levantamiento de requisitos del proyecto.
-
-\begin{center}
-\small
-\begin{tabularx}{\linewidth}{>{\bfseries\raggedright\arraybackslash}p{3.2cm}
-                             >{\raggedright\arraybackslash}X}
-\toprule
-Problema & El graduado ve y postula a una oferta que ya no existe en el portal de origen.\\
-Causa inmediata & El catálogo local solo se actualiza en cada ejecución del \textit{scraping}.\\
-Causa raíz & El sistema no controla los datos externos; la consistencia con el origen
-             es eventual por diseño (PA/EL, sección 4).\\
-Acción correctiva & Sincronización que desactiva o elimina las ofertas no vigentes (RF-07).\\
-Acción preventiva & Etiqueta ``Ofertas de Sitios Externos'', fecha de última verificación
-                    visible y prioridad a las ofertas validadas de empresas colaboradoras
-                    (RF-05).\\
-Verificación & Revisión del registro de auditoría de ejecuciones de importación (RNF-02,
-               RP-04) y pruebas controladas comprobando que una vacante retirada del portal
-               origen pase a estado inactivo tras el siguiente ciclo de sincronización (RF-07).\\
-\bottomrule
-\end{tabularx}
-\end{center}
-
-% =====================================================================
-\section{Comparación y postura crítica \expo{1 min}{Jeremy Jaramillo}}
-% =====================================================================
-Para valorar el diseño de JobFinder se lo contrasta con \textbf{LinkedIn},
-plataforma global que resuelve el mismo problema de intermediación laboral pero
-a una escala muy superior.
-
-\begin{center}
-\small
-\begin{tabularx}{\linewidth}{>{\bfseries\raggedright\arraybackslash}p{2.9cm}
-                             >{\raggedright\arraybackslash}X
-                             >{\raggedright\arraybackslash}X}
-\toprule
-Criterio & \textbf{JobFinder (UTEQ)} & \textbf{LinkedIn} \\
-\midrule
-Arquitectura y escala
-  & Backend centralizado (\texttt{:8080}) sobre una instancia PostgreSQL (\texttt{:5432}), orientado a una sola universidad.
-  & Más de 1\,200 millones de miembros; su plataforma de eventos llegó a mover más
-    de 32 billones de registros al día en más de 10\,000 máquinas y 150 clústeres
-    \cite{linkedin2025northguard}. \\
-\midrule
-CAP / PACELC
-  & \textbf{PC/EC} en cuentas, validación y postulaciones; \textbf{PA/EL} en catálogo externo y alertas WebSocket.
-  & \textit{Inferencia del equipo:} \textbf{PA/EL} en el \textit{feed} y el buscador, que
-    se sirven desde índices y almacenes distribuidos alimentados por Kafka
-    \cite{linkedinFeedInfra}; se privilegia la baja latencia sobre la consistencia inmediata. \\
-\midrule
-Validación y búsqueda
-  & Revisión manual previa por el administrador (RF-05) y filtros estructurados sobre la base local.
-  & Índices de búsqueda, capa de \textit{ranking} y aprendizaje automático sobre datos
-    distribuidos \cite{linkedinFeedInfra}; la recomendación según perfil es el enfoque
-    estudiado para graduados en \cite{ref1}. \\
-\midrule
-Tolerancia a fallos
-  & Punto único de fallo en PostgreSQL (\texttt{:5432}) y en el nodo del backend (\texttt{:8080}).
-  & Datos replicados por segmentos y metadatos en máquinas de estado replicadas con Raft
-    (Northguard), que soportan la caída de nodos \cite{linkedin2025northguard}. \\
-\bottomrule
-\end{tabularx}
-\end{center}
-
-\textbf{Fortalezas:} la validación administrativa reduce ofertas falsas para los
-graduados, el costo de operación es bajo para una universidad pública y las
-postulaciones mantienen integridad ACID inmediata.
-\textbf{Limitaciones:} el proceso de \textit{scraping} comparte la misma base
-PostgreSQL que el tráfico interactivo, no existe réplica en caliente ante caídas
-del nodo de BD y la coincidencia perfil--vacante sigue siendo básica.
-\textbf{Postura crítica (\textit{trade-offs}):} imitar la infraestructura
-distribuida de LinkedIn sería sobreingeniería para la UTEQ. El compromiso
-correcto es mantener la consistencia fuerte (\textbf{PC/EC}) en el núcleo
-transaccional, pero separar la ingesta externa y las notificaciones en servicios
-desacoplados mediante mensajería asíncrona \cite{ref4,petrescu2025iotprotocols}.
-
-% =====================================================================
-\section{Lecciones para el PFC y conclusiones \expo{1 min}{Jeremy Jaramillo}}
-% =====================================================================
-\textbf{Decisiones que aplicaremos en el PFC:}
-\begin{itemize}
-  \item \textbf{Microservicios detrás de un \textit{API Gateway}:} separar
-        \texttt{Perfiles}, \texttt{Ofertas y Validación}, \texttt{Postulaciones},
-        \texttt{Ingesta Externa} y \texttt{Notificaciones} para que un bloqueo de
-        I/O en el \textit{scraping} no degrade las postulaciones activas,
-        manteniendo compatibilidad entre versiones de contratos \cite{ref4}.
-  \item \textbf{Comunicación diferenciada:} usar gRPC para llamadas internas
-        síncronas del núcleo y, como propuesta del equipo para JobFinder, incorporar
-        mensajería asíncrona mediante un \textit{broker} y colas AMQP para alertas e
-        ingesta, desacoplando productores y consumidores frente a servicios externos
-        lentos o caídos \cite{petrescu2025iotprotocols}.
-  \item \textbf{Modelo CAP/PACELC y verificación:} conservar \textbf{PC/EC} en
-        PostgreSQL para el núcleo y \textbf{PA/EL} solo en el catálogo importado;
-        si el proyecto escalara entre sedes, se evaluaría consistencia causal+
-        como en \cite{ref5}. Cada mitigación se verificará mediante pruebas de
-        corte controlado de \texttt{:5432} y reconexión WebSocket \cite{ref3}.
-\end{itemize}
-
-\textbf{Conclusiones:} un mismo sistema distribuido real combina decisiones
-opuestas de consistencia según el valor del dato (\textbf{PC/EC} en postulaciones
-y auditoría frente a \textbf{PA/EL} en ofertas importadas). En JobFinder el
-principal riesgo técnico no es el volumen de usuarios, sino el acoplamiento entre
-dependencias externas inestables (\textit{scraping} y SMTP) y la base relacional,
-problema que guía directamente la arquitectura del PFC.
-
-% =====================================================================
-\section{Ejemplo del entorno propio}
+\section*{Ejemplo del entorno propio}
 % =====================================================================
 \begin{itemize}
   \item \textbf{SGA de la UTEQ en matriculación y pagos en \textit{De Una} /
@@ -429,7 +295,7 @@ problema que guía directamente la arquitectura del PFC.
 \end{itemize}
 
 % =====================================================================
-\section{Tabla de aportes}
+\section*{Tabla de aportes}
 % =====================================================================
 \begin{center}
 \small
@@ -439,15 +305,15 @@ problema que guía directamente la arquitectura del PFC.
 \toprule
 \textbf{Integrante} & \textbf{Sección que expone} & \textbf{Qué aportó}\\
 \midrule
-Kenny España Vera        & Secciones 1 y 2 (Presentación del sistema; Arquitectura) & Boceto a mano de la arquitectura (Anexo~A), primer borrador LaTeX de las notas, diapositivas Beamer de las secciones 1 y 2 con el diagrama TikZ, actualización y verificación de DOIs en \texttt{referencias.bib}, migración de las notas a \texttt{biblatex}/\texttt{biber} y captura anotada de Yao \emph{et al.} \\
-Jeremy Jaramillo Acosta  & Secciones 7, 8 y 9 (Comparación crítica, lecciones PFC y entorno propio) & Estructura inicial del repositorio y \texttt{README.md}, referencias base en \texttt{referencias.bib}, esqueleto de cierre/anexos, redacción de secciones 7, 8 y 9 en notas, diagrama editable \texttt{.drawio} con su exportación gráfica y captura subrayada de Yaroshynskyi \emph{et al.} (pág.~2). \\
-Heiner Zambrano Ronquillo& Secciones 3 y 4 (Transparencias de distribución; CAP y PACELC) & Redacción de secciones 3 y 4 en notas, diapositivas Beamer de ambas secciones, referencias bibliográficas, captura subrayada de Camilleri \emph{et al.} (pág.~6) y demo en vivo (TCP :8080 y bloqueo CAP con PostgreSQL :5432). \\
-Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia a fallos) & Creación del repositorio, referencias en \texttt{referencias.bib}, redacción de secciones 5 y 6 en notas (modelos de fallo y causas raíz FORM-AC-01) y diapositivas Beamer de ambas secciones. \\
+Kenny España Vera        & 1. Presentación del sistema; Fundamentos TCP, UDP y WebSocket (Práctica 1) & Versión final de las diapositivas y adaptación de las notas, boceto a mano de la arquitectura (Anexo~A), primer borrador LaTeX de las notas, diapositivas Beamer de las secciones 1 y 2 con el diagrama TikZ, actualización y verificación de DOIs en \texttt{referencias.bib}, migración de las notas a \texttt{biblatex}/\texttt{biber} y captura anotada de Yao \emph{et al.} \\
+Jeremy Jaramillo Acosta  & 2. Arquitectura; 5. Modelos de comunicación (Práctica 2) & Estructura inicial del repositorio y \texttt{README.md}, referencias base en \texttt{referencias.bib}, esqueleto de cierre/anexos, redacción de secciones 7, 8 y 9 en notas, diagrama editable \texttt{.drawio} con su exportación gráfica y captura subrayada de Yaroshynskyi \emph{et al.} (pág.~2). \\
+Heiner Zambrano Ronquillo& 3. Transparencias de distribución; 4. CAP y PACELC (Práctica 3) & Redacción de secciones 3 y 4 en notas, diapositivas Beamer de ambas secciones, referencias bibliográficas, captura subrayada de Camilleri \emph{et al.} (pág.~6) y demo en vivo (TCP :8080 y bloqueo CAP con PostgreSQL :5432). \\
+Luis Paca Pilataza       & 6. Tolerancia a fallos (Práctica 4); 7. Comparación; 8. Lecciones para el PFC & Creación del repositorio, referencias en \texttt{referencias.bib} (incluidas las fuentes INEC, UTEQ y LinkedIn), redacción de secciones 5 y 6 en notas (modelos de fallo y causas raíz FORM-AC-01), diapositivas Beamer de las secciones 5 a 8 y capturas anotadas de Mitrović \emph{et al.} \\
 \bottomrule
 \end{tabularx}
 \end{center}
 % =====================================================================
-\section{Declaración de uso de IA}
+\section*{Declaración de uso de IA}
 % =====================================================================
 % Cada integrante debe revisar este apartado y AGREGAR cualquier otra herramienta
 % de IA que haya usado (ChatGPT, Gemini, Copilot, etc.) y para qué.
@@ -463,6 +329,8 @@ Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia
         \texttt{biblatex} con \texttt{biber}, diagrama TikZ de la arquitectura a
         partir de nuestro boceto a mano, estructura de diapositivas y revisión
         ortográfica y de formato de las secciones finales.
+  \item Adaptar la redacción de las notas al orden y contenido de la versión
+        final de las diapositivas.
 \end{itemize}
 
 \textbf{Qué hizo el equipo:} la elección del sistema, el boceto de la arquitectura,
