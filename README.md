@@ -1,6 +1,6 @@
-# GA-SUM-02 / EXP-1 — Análisis de Sistema Distribuido: WebSockets, TCP y UDP en JobFinder 
+# GA-SUM-02 / EXP-1 — Análisis de Sistema Distribuido: WebSockets, TCP y UDP en JobFinder
 
-Repositorio del **Equipo EJPZ** para la exposición del primer corte de la asignatura **Aplicaciones Distribuidas** (Carrera de Ingeniería en Software, Paralelo A — Universidad Técnica Estatal de Quevedo).
+Repositorio del **Equipo EJPZ** para la exposición del primer corte de la asignatura **Aplicaciones Distribuidas** (Facultad de Ciencias de la Computación, Carrera de Ingeniería en Software, Paralelo A — Universidad Técnica Estatal de Quevedo).
 
 ## Integrantes del Equipo (EJPZ)
 * **España Vera Kenny Isaías**
@@ -9,22 +9,21 @@ Repositorio del **Equipo EJPZ** para la exposición del primer corte de la asign
 * **Zambrano Ronquillo Heiner Ariel**
 
 ## Video del Ensayo (Máximo 12 minutos)
-* **Enlace al video (YouTube No Listado / Google Drive abierto):** 
+* **Enlace al video (YouTube):** https://youtu.be/BtBp5cWaXLg
 
 ## Estructura del Repositorio
 * `diapositivas.tex` / `diapositivas.pdf`: Presentación elaborada en LaTeX (`beamer`) con referencias en formato IEEE.
-* `main.tex` / `main.pdf`: Notas desarrolladas de la exposición (2 a 4 páginas), ejemplos del entorno propio, tabla de aportes, declaración de IA y anexo del esquema inicial a mano.
-* `referencias.bib`: Base bibliográfica verificada (mínimo 6 fuentes de los últimos 5 años, incluyendo artículos con DOI verificable).
-* `Arquitectura_JobFinder_Real_EJPZ.drawio` / `arquitectura_jobfinder.png`: Diagrama editable y exportación gráfica de la arquitectura híbrida de JobFinder.
-* `demo_websockets_ejpz/`: Scripts de demostración en vivo (`demo_udp.js`, `server_jobfinder.js`, `cliente_jobfinder.html`).
-* `evidencias/`: Fotografía del boceto inicial a mano (`ArquitecturaDistribuidaAmano.jpeg`) y capturas anotadas de los artículos citados.
-* `BITACORA.md`: Registro cronológico de sesiones de trabajo y problemas técnicos resueltos.
+* `main.tex` / `main.pdf`: Notas desarrolladas de la exposición, ejemplos del entorno propio, tabla de aportes, declaración de uso de IA y anexos (boceto a mano y capturas de lectura).
+* `referencias.bib`: Base bibliográfica verificada (15 fuentes: 11 artículos indexados 2021–2025 con DOI verificable y 4 fuentes primarias institucionales/técnicas).
+* `Arquitectura_JobFinder_Real_EJPZ.drawio` / `arquitectura_jobfinder.png`: Diagrama editable y exportación gráfica en alta resolución de la arquitectura híbrida de JobFinder.
+* `evidencias/`: Fotografía del boceto inicial a mano con nombres y fecha (`ArquitecturaDistribuidaAmano.jpeg`) y 5 capturas subrayadas de los artículos citados con número de página.
+* `BITACORA.md`: Registro cronológico de sesiones de trabajo, commits de referencia y problemas técnicos resueltos.
 
 ## Instrucciones de Compilación
 
-* **Compilador requerido:** `pdfLaTeX` + `Biber` (distribución TeX Live 2023+ o MiKTeX).
+* **Compilador requerido:** `pdfLaTeX` + `Biber` (distribución TeX Live 2023+ o MiKTeX; probado también en Docker `texlive/texlive:latest`).
 * **Archivos principales:** `diapositivas.tex` y `main.tex`.
-* **Dependencias LaTeX:** `beamer`, `inputenc`, `fontenc`, `babel` (`spanish`), `lmodern`, `graphicx`, `booktabs`, `tabularx`, `hyperref`, `csquotes`, `tikz`, `enumitem`, `titlesec`, `array`, `xcolor`, `geometry`, `url`, `biblatex` (`style=ieee`, `backend=biber`).
+* **Dependencias LaTeX:** `beamer`, `inputenc`, `fontenc`, `babel` (`spanish`), `csquotes`, `FiraSans`, `inconsolata`, `lmodern`, `graphicx`, `booktabs`, `tabularx`, `array`, `colortbl`, `xcolor`, `tikz`, `tcolorbox`, `enumitem`, `titlesec`, `geometry`, `hyperref`, `url`, `biblatex` (`style=ieee`, `backend=biber`).
 
 Para regenerar ambos documentos PDF desde la terminal en la raíz del repositorio, ejecutar en orden:
 

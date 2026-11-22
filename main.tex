@@ -114,9 +114,10 @@ a mano (Anexo~A). Tiene tres bloques que se comunican sobre TCP:
         \texttt{ws://} puro con \textit{heartbeats} cada 5\,s); y servicio de
         integración externa \texttt{JSearchRapidApiService} (RF-07).
   \item \textbf{Datos y externos:} PostgreSQL (\texttt{:5432}, base
-        \texttt{BolsaEmpleoNew}, multi-esquema ACID y \texttt{seguridad.auditoria})
-        vía JDBC/HikariCP; servidor SMTP (\texttt{smtp.gmail.com:587},
-        \texttt{EmailService}, RF-06); y la API JSearch de RapidAPI por HTTPS.
+        \texttt{BolsaEmpleoNew}, multi-esquema ACID y registro en
+        \nolinkurl{seguridad.auditoria}) vía JDBC/HikariCP; servidor SMTP
+        (\nolinkurl{smtp.gmail.com:587}, \texttt{EmailService}, RF-06); y la API
+        JSearch de RapidAPI por HTTPS.
 \end{itemize}
 \textbf{Deuda técnica:} \texttt{JSearchRapidApiService} corre de forma síncrona
 dentro del mismo proceso \texttt{:8080}. En el PFC (\texttt{TA-PFC-E1}) se aislará
