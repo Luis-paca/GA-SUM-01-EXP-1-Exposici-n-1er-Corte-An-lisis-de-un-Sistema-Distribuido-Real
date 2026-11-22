@@ -440,7 +440,7 @@ problema que guía directamente la arquitectura del PFC.
 \textbf{Integrante} & \textbf{Sección que expone} & \textbf{Qué aportó}\\
 \midrule
 Kenny España Vera        & Secciones 1 y 2 (Presentación del sistema; Arquitectura) & Boceto a mano de la arquitectura (Anexo~A), primer borrador LaTeX de las notas, diapositivas Beamer de las secciones 1 y 2 con el diagrama TikZ, actualización y verificación de DOIs en \texttt{referencias.bib}, migración de las notas a \texttt{biblatex}/\texttt{biber} y captura anotada de Yao \emph{et al.} \\
-Jeremy Jaramillo Acosta  & Secciones 7, 8 y 9 (Comparación crítica, lecciones PFC y entorno propio) & Estructura inicial del repositorio y \texttt{README.md}, referencias base en \texttt{referencias.bib}, esqueleto de cierre/anexos y redacción de secciones 7, 8 y 9 en notas. \\
+Jeremy Jaramillo Acosta  & Secciones 7, 8 y 9 (Comparación crítica, lecciones PFC y entorno propio) & Estructura inicial del repositorio y \texttt{README.md}, referencias base en \texttt{referencias.bib}, esqueleto de cierre/anexos, redacción de secciones 7, 8 y 9 en notas, diagrama editable \texttt{.drawio} con su exportación gráfica y captura subrayada de Yaroshynskyi \emph{et al.} (pág.~2). \\
 Heiner Zambrano Ronquillo& Secciones 3 y 4 (Transparencias de distribución; CAP y PACELC) & Redacción de secciones 3 y 4 en notas, diapositivas Beamer de ambas secciones, referencias bibliográficas, captura subrayada de Camilleri \emph{et al.} (pág.~6) y demo en vivo (TCP :8080 y bloqueo CAP con PostgreSQL :5432). \\
 Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia a fallos) & Creación del repositorio, referencias en \texttt{referencias.bib}, redacción de secciones 5 y 6 en notas (modelos de fallo y causas raíz FORM-AC-01) y diapositivas Beamer de ambas secciones. \\
 \bottomrule
@@ -451,7 +451,7 @@ Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia
 % =====================================================================
 % Cada integrante debe revisar este apartado y AGREGAR cualquier otra herramienta
 % de IA que haya usado (ChatGPT, Gemini, Copilot, etc.) y para qué.
-\textbf{Herramienta utilizada:} Claude (Anthropic), asistente de IA generativa.
+\textbf{Herramientas utilizadas:} Claude (Anthropic) y Gemini (Google), asistentes de IA generativa.
 
 \textbf{Para qué se usó:}
 \begin{itemize}
@@ -459,9 +459,10 @@ Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia
         faltaba.
   \item Verificar en Crossref y doi.org que cada DOI de \texttt{referencias.bib}
         corresponda a la obra citada (título, autores, revista, volumen y páginas).
-  \item Apoyo en código LaTeX: migración de las notas a \texttt{biblatex} con
-        \texttt{biber}, diagrama TikZ de la arquitectura a partir de nuestro boceto
-        a mano y estructura de las diapositivas de las secciones 1 y 2.
+  \item Apoyo en código LaTeX y revisión estructural: migración de las notas a
+        \texttt{biblatex} con \texttt{biber}, diagrama TikZ de la arquitectura a
+        partir de nuestro boceto a mano, estructura de diapositivas y revisión
+        ortográfica y de formato de las secciones finales.
 \end{itemize}
 
 \textbf{Qué hizo el equipo:} la elección del sistema, el boceto de la arquitectura,
@@ -519,6 +520,14 @@ cada sección, quien está en capacidad de explicarlo.
   \includegraphics[width=0.85\linewidth,keepaspectratio]{evidencias/captura_mitrovic2023_luis_p12.jpeg}
   \caption{Fragmento subrayado de Mitrović \emph{et al.} (2023) \cite{mitrovic2023websocket}, \textbf{pág.~278} (pág.~12 del PDF) (Luis Paca). Respalda las Secciones~5 y~6: con WebSocket la tasa de transferencia ronda los 150\,ms, frente a unos 350\,ms con \textit{long polling}.}
   \label{fig:captura-mitrovic-p12}
+\end{figure}
+
+\clearpage
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.92\linewidth,keepaspectratio]{evidencias/captura_yaroshynskyi2025_jeremy.jpg}
+  \caption{Fragmento subrayado de Yaroshynskyi \emph{et al.} (2025) \cite{ref4}, \textbf{pág.~2 de 21} (Jeremy Jaramillo). Respalda las Secciones~2, 7 y~8: al evolucionar microservicios de forma independiente, mantener compatibilidad hacia atrás en los contratos de API evita fallos en los servicios consumidores, principio que guía el desacoplamiento de JobFinder en el PFC.}
+  \label{fig:captura-yaroshynskyi}
 \end{figure}
 
 \end{document}
