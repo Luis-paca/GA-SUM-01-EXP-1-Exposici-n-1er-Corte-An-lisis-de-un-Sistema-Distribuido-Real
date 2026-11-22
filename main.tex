@@ -2,7 +2,7 @@
 %  Notas de presentación — GA-SUM-02 / EXP-1
 %  Parte 4 — documento completo
 %  Sistema analizado: Bolsa de Empleos para Graduados UTEQ
-%  Compilar: pdflatex -> bibtex -> pdflatex -> pdflatex
+%  Compilar: pdflatex -> biber -> pdflatex -> pdflatex
 % =====================================================================
 \documentclass[11pt,a4paper]{article}
 
@@ -18,10 +18,16 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,babel}
 \usepackage{titlesec}
+\usepackage{csquotes}
 \usepackage[hidelinks]{hyperref}
 \usepackage{url}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{referencias.bib}
+
+% Evita cambio de tipografía (small-caps) en siglas como DOI en biblatex
+\renewcommand*{\mkbibacro}[1]{#1}
 
 \setlist{nosep,leftmargin=*}
 \titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
@@ -42,51 +48,51 @@
 \begin{center}
   {\large\bfseries UNIVERSIDAD TÉCNICA ESTATAL DE QUEVEDO}\\[2pt]
   Facultad de Ciencias de la Computación y Diseño Digital\\
-  Carrera de Software \quad|\quad Paralelo: \underline{\hspace{2cm}}\\[8pt]
+  Carrera de Software \quad|\quad Paralelo: A\\[8pt]
   {\Large\bfseries Bolsa de Empleos para Graduados UTEQ}\\[2pt]
   {\normalsize Análisis como sistema distribuido — Notas de presentación}\\[6pt]
   \textbf{Actividad:} GA-SUM-02 / EXP-1\\[2pt]
   \textbf{Equipo EJPZ:} Kenny España Vera, Jeremy Jaramillo Acosta,
   Heiner Zambrano Ronquillo, Luis Paca Pilataza\\[2pt]
-  \textbf{Fecha:} 19 de noviembre de 2026
+  \textbf{Fecha:} 21 de noviembre de 2026
 \end{center}
 \vspace{-4pt}\noindent\rule{\linewidth}{0.4pt}
 
 % =====================================================================
-\section{Presentación del sistema \expo{1 min}{\underline{\hspace{2.5cm}}}}
+\section{Presentación del sistema \expo{1 min}{Kenny España}}
 % =====================================================================
 \textbf{Qué problema resuelve.} La UTEQ no cuenta con una bolsa de empleo oficial
 y sus canales institucionales casi no ayudan a la inserción laboral. La plataforma
 centraliza en un solo sitio web las ofertas publicadas por empresas colaboradoras
 (validadas por un administrador antes de publicarse) y las ofertas importadas de
 portales externos mediante \textit{web scraping}, mostradas en una sección
-diferenciada \cite{espana2025bolsa}. La idea de conectar graduados con empleadores
+diferenciada. La idea de conectar graduados con empleadores
 según su perfil se apoya en trabajos de recomendación recíproca de empleo para
 recién graduados \cite{ref1}.
 
 \textbf{Quién lo usa.} Tres actores: \emph{graduados} (perfil, búsqueda,
 postulación, favoritos, alertas), \emph{empresas colaboradoras} (publican ofertas y
 gestionan postulantes) y el \emph{administrador} UTEQ (valida ofertas, administra
-usuarios, reportes y auditoría) \cite{espana2025bolsa}.
+usuarios, reportes y auditoría).
 
 \textbf{A qué escala opera (cifras citadas).}
 \begin{itemize}
   \item Contexto nacional (INEC): 20,9\,\% de jóvenes con formación universitaria
-        en subempleo y 4,1\,\% en desempleo \cite{espana2025bolsa}.
+        en subempleo y 4,1\,\% en desempleo.
   \item Seguimiento a graduados UTEQ 2022: solo el 51,50\,\% trabaja; el 55\,\%
         consiguió su primer empleo por recomendación personal y apenas el 8,41\,\%
-        por bolsas de empleo \cite{espana2025bolsa}.
+        por bolsas de empleo.
   \item Escala institucional (una universidad) con meta de disponibilidad de
-        99,5\,\% durante el ciclo académico (RNF-01) \cite{espana2025bolsa}.
+        99,5\,\% durante el ciclo académico (RNF-01).
         \textit{Nota para el expositor: el sistema está en fase de requisitos y
         prototipo; no es un servicio masivo como LinkedIn o Indeed.}
 \end{itemize}
 
 % =====================================================================
-\section{Arquitectura \expo{2 min}{\underline{\hspace{2.5cm}}}}
+\section{Arquitectura \expo{2 min}{Kenny España}}
 % =====================================================================
 \textbf{Componentes} (derivados de los requisitos RF-01 a RF-11 y RNF-01 a RNF-03
-\cite{espana2025bolsa}):
+del proyecto):
 \begin{enumerate}
   \item \textbf{Cliente web responsivo} (RI-01): interfaz para graduados, empresas y
         panel de administración.
@@ -96,8 +102,9 @@ usuarios, reportes y auditoría) \cite{espana2025bolsa}.
   \item \textbf{Servicio de importación de ofertas externas}: tarea programada que
         hace \textit{scraping}, normaliza las ofertas y desactiva las que ya no
         están vigentes (RF-07).
-  \item \textbf{Servicio de notificaciones}: envía alertas por correo cuando una
-        oferta coincide con el perfil (RF-06).
+  \item \textbf{Módulo WebSocket y notificaciones} (\texttt{/ws-notificaciones}):
+        empuja alertas en tiempo real a la interfaz (RI-05, RF-10) y envía por
+        correo SMTP las ofertas que coinciden con el perfil (RF-06).
   \item \textbf{Base de datos relacional} (modelo ER del proyecto) y
         \textbf{registro de auditoría} (RNF-02, RP-04).
   \item \textbf{Sistemas externos}: portales de empleo de origen y servidor de
@@ -105,39 +112,39 @@ usuarios, reportes y auditoría) \cite{espana2025bolsa}.
 \end{enumerate}
 
 \textbf{Cómo se comunican.} El cliente habla con la API por HTTPS (petición–respuesta
-sobre TCP). La API y el servicio de importación comparten la base de datos.
-El servicio de importación consulta los portales externos de forma periódica y,
-cuando registra ofertas nuevas, deja trabajos al servicio de notificaciones, que
-los envía por SMTP de forma asíncrona. Separar los servicios permite que cada uno
-evolucione por su cuenta, siempre que se mantenga la compatibilidad de versiones
-entre ellos \cite{ref4}.
+sobre TCP) y la API consulta PostgreSQL por SQL. Además, el cliente mantiene una
+conexión WebSocket persistente con el backend para recibir alertas sin recargar.
+El \textit{worker} de \textit{scraping} consulta los portales externos de forma
+periódica, guarda las ofertas en la base de datos y avisa al módulo de
+notificaciones, que las empuja por WebSocket y las envía por SMTP de forma
+asíncrona. Separar los servicios permite que cada uno evolucione por su cuenta,
+siempre que se mantenga la compatibilidad de versiones entre ellos \cite{ref4}.
 
 \begin{figure}[ht]
 \centering
-% --- Reemplazar por el diagrama propio exportado de draw.io:
-% \includegraphics[width=0.85\linewidth]{diagrama_arquitectura.png}
 \begin{tikzpicture}[
-  node distance=8mm and 16mm,
+  node distance=7mm and 12mm,
   box/.style={draw,rounded corners,align=center,font=\footnotesize,
-              minimum width=26mm,minimum height=9mm,fill=white},
+              minimum width=30mm,minimum height=9mm,fill=white},
   ext/.style={box,dashed,fill=gray!8},
   arr/.style={-{Latex[length=2mm]},thick},
   aarr/.style={-{Latex[length=2mm]},thick,dashed}]
-  \node[box] (cli) {Cliente web\\(graduado / empresa / admin)};
-  \node[box,right=of cli] (api) {API de aplicación\\(REST sobre HTTPS)};
-  \node[box,right=of api] (db) {Base de datos\\relacional + auditoría};
-  \node[box,below=of api] (scr) {Servicio de importación\\(scraping programado)};
-  \node[box,right=of scr] (not) {Servicio de\\notificaciones};
-  \node[ext,left=of scr] (por) {Portales externos\\de empleo};
-  \node[ext,below=of not] (smtp) {Servidor SMTP};
-  \draw[arr] (cli) -- node[above,font=\scriptsize]{síncrono} (api);
-  \draw[arr] (api) -- (db);
-  \draw[arr] (scr) -- (db);
-  \draw[aarr] (scr) -- node[above,font=\scriptsize]{periódico} (por);
-  \draw[aarr] (scr) -- node[above,font=\scriptsize]{asíncrono} (not);
-  \draw[aarr] (not) -- (smtp);
+  \node[box] (cli) {\textbf{Cliente web}\\graduado / empresa / admin};
+  \node[box,right=of cli] (api) {\textbf{API REST}\\\texttt{/api/**} (:8080)};
+  \node[box,right=of api] (db) {\textbf{PostgreSQL} (:5432)\\datos + auditoría};
+  \node[box,below=of api] (ws) {\textbf{Módulo WebSocket}\\\texttt{/ws-notificaciones}};
+  \node[box,below=of ws] (scr) {\textbf{Worker de scraping}\\(programado, RF-07)};
+  \node[ext,right=of scr] (por) {Portales externos\\de empleo};
+  \node[ext,right=of ws] (smtp) {Servidor SMTP\\(:587)};
+  \draw[arr] (cli) -- node[above,font=\scriptsize]{HTTPS} (api);
+  \draw[arr] (api) -- node[above,font=\scriptsize]{SQL} (db);
+  \draw[aarr,<->] (cli.south) |- node[pos=0.75,above,font=\scriptsize]{WebSocket} (ws.west);
+  \draw[aarr] (scr) -- node[above,font=\scriptsize]{HTTPS} (por);
+  \draw[aarr] (scr) -- node[right,font=\scriptsize]{nuevas ofertas} (ws);
+  \draw[aarr] (ws) -- node[above,font=\scriptsize]{correo} (smtp);
 \end{tikzpicture}
-\caption{Arquitectura lógica propuesta (línea continua: síncrono; discontinua: asíncrono/periódico).}
+\caption{Arquitectura de JobFinder elaborada por el equipo a partir del boceto a mano
+(Anexo~A). Línea continua: síncrono; discontinua: asíncrono/periódico.}
 \label{fig:arq}
 \end{figure}
 
@@ -163,7 +170,7 @@ entre ellos \cite{ref4}.
 \begin{itemize}
   \item \textbf{Transparencia de origen (decisión de diseño):} las ofertas externas
         se etiquetan como \textit{``Ofertas de Sitios Externos''} para advertir que
-        son menos confiables o podrían estar expiradas \cite{espana2025bolsa}.
+        son menos confiables o podrían estar expiradas.
   \item \textbf{Transparencia de tiempo/replicación:} una oferta de empresa no aparece
         al instante; queda \emph{pendiente} hasta que el administrador la valida (RF-05),
         y las externas se actualizan solo en cada sincronización (RF-07).
@@ -220,9 +227,9 @@ las escrituras de postulación (bloqueo CAP).
         latencia en operación normal tolerando fallos de nodos y particiones
         \cite{ref5} (pág.~6, ver Anexo~B). Sería una opción viable si JobFinder
         necesitara replicar PostgreSQL entre sedes.
-  \item En el propio proyecto, el decano advirtió que el \textit{scraping} puede
-        traer información expirada; eso confirma que el catálogo externo nunca es
-        fuertemente consistente \cite{espana2025bolsa}.
+  \item En las entrevistas del levantamiento de requisitos del proyecto, el decano
+        advirtió que el \textit{scraping} puede traer información expirada; eso
+        confirma que el catálogo externo nunca es fuertemente consistente.
 \end{itemize}
 
 % =====================================================================
@@ -294,7 +301,7 @@ llamadas a portales y SMTP, y validaciones en formularios.
 \textbf{Incidente documentado y análisis de causas raíz (FORM-AC-01).}
 \textit{Caso:} riesgo de publicar ofertas externas expiradas o ya adquiridas.
 Lo identificó Suárez en su sistema de \textit{web mining} y lo ratificó el decano
-en las entrevistas \cite{espana2025bolsa}.
+en las entrevistas del levantamiento de requisitos del proyecto.
 
 \begin{center}
 \small
@@ -423,7 +430,7 @@ problema que guía directamente la arquitectura del PFC.
 \toprule
 \textbf{Integrante} & \textbf{Sección que expone} & \textbf{Qué aportó}\\
 \midrule
-Kenny España Vera        & & \\
+Kenny España Vera        & Secciones 1 y 2 (Presentación del sistema; Arquitectura) & Boceto a mano de la arquitectura (Anexo~A), primer borrador LaTeX de las notas, diapositivas Beamer de las secciones 1 y 2 con el diagrama TikZ, actualización y verificación de DOIs en \texttt{referencias.bib}, migración de las notas a \texttt{biblatex}/\texttt{biber} y captura anotada de Yao \emph{et al.} \\
 Jeremy Jaramillo Acosta  & Secciones 7, 8 y 9 (Comparación crítica, lecciones PFC y entorno propio) & Estructura inicial del repositorio y \texttt{README.md}, referencias base en \texttt{referencias.bib}, esqueleto de cierre/anexos y redacción de secciones 7, 8 y 9 en notas. \\
 Heiner Zambrano Ronquillo& Secciones 3 y 4 (Transparencias de distribución; CAP y PACELC) & Redacción de secciones 3 y 4 en notas, diapositivas Beamer de ambas secciones, referencias bibliográficas, captura subrayada de Camilleri \emph{et al.} (pág.~6) y demo en vivo (TCP :8080 y bloqueo CAP con PostgreSQL :5432). \\
 Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia a fallos) & Creación del repositorio, referencias en \texttt{referencias.bib}, redacción de secciones 5 y 6 en notas (modelos de fallo y causas raíz FORM-AC-01) y diapositivas Beamer de ambas secciones. \\
@@ -433,14 +440,31 @@ Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia
 % =====================================================================
 \section{Declaración de uso de IA}
 % =====================================================================
-% Pendiente: herramienta, para qué se usó, qué se revisó o reescribió.
+% Cada integrante debe revisar este apartado y AGREGAR cualquier otra herramienta
+% de IA que haya usado (ChatGPT, Gemini, Copilot, etc.) y para qué.
+\textbf{Herramienta utilizada:} Claude (Anthropic), asistente de IA generativa.
+
+\textbf{Para qué se usó:}
+\begin{itemize}
+  \item Revisar el repositorio contra la consigna de la actividad y listar lo que
+        faltaba.
+  \item Verificar en Crossref y doi.org que cada DOI de \texttt{referencias.bib}
+        corresponda a la obra citada (título, autores, revista, volumen y páginas).
+  \item Apoyo en código LaTeX: migración de las notas a \texttt{biblatex} con
+        \texttt{biber}, diagrama TikZ de la arquitectura a partir de nuestro boceto
+        a mano y estructura de las diapositivas de las secciones 1 y 2.
+\end{itemize}
+
+\textbf{Qué hizo el equipo:} la elección del sistema, el boceto de la arquitectura,
+la selección y lectura de los artículos (ver capturas del Anexo~B), los ejemplos del
+entorno propio y el análisis de cada sección. Todo el texto sugerido por la IA fue
+revisado, corregido y contrastado con las fuentes por el integrante responsable de
+cada sección, quien está en capacidad de explicarlo.
 
 % =====================================================================
 %  REFERENCIAS (IEEE)
 % =====================================================================
-\renewcommand{\refname}{Referencias}
-\bibliographystyle{IEEEtran}
-\bibliography{referencias}
+\printbibliography[title={Referencias}]
 
 % =====================================================================
 %  ANEXOS
@@ -449,14 +473,43 @@ Luis Paca Pilataza       & Secciones 5 y 6 (Modelos de comunicación; Tolerancia
 \appendix
 \renewcommand{\thesection}{\Alph{section}}
 \section{Foto del boceto a mano (con nombres y fecha)}
-% \includegraphics[width=\linewidth]{boceto.jpg}
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=\linewidth,keepaspectratio]{evidencias/ArquitecturaDistribuidaAmano.jpeg}
+  \caption{Primer bosquejo de la arquitectura de JobFinder dibujado a mano por el
+  equipo EJPZ (20/11/2026). Base del diagrama de la Sección~2.}
+  \label{fig:boceto}
+\end{figure}
 
+\clearpage
 \section{Capturas de los artículos anotados}
 \begin{figure}[!ht]
   \centering
-  \includegraphics[height=0.72\textheight,keepaspectratio]{evidencias/captura_camilleri2024_heiner.png}
+  \includegraphics[height=0.42\textheight,keepaspectratio]{evidencias/captura_camilleri2024_heiner.png}
   \caption{Fragmento subrayado de Camilleri \emph{et al.} (2024) \cite{ref5}, \textbf{pág.~6 de 41} (Heiner Zambrano). El pasaje respalda la Sección~4 (CAP y PACELC): muestra cómo el middleware \textit{Thespis} sobre un RDBMS logra consistencia causal+, disponibilidad y tolerancia a particiones, reduciendo la latencia en operación normal.}
   \label{fig:captura-camilleri}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.85\linewidth,keepaspectratio]{evidencias/captura_yao2023_kenny.png}
+  \caption{Fragmento subrayado de Yao \emph{et al.} (2023) \cite{ref1}, \textbf{pág.~1 de 22} (Kenny España). Respalda la Sección~1: el aumento de graduados y la dificultad para emparejar su perfil con las vacantes, problema que JobFinder busca resolver.}
+  \label{fig:captura-yao}
+\end{figure}
+
+\clearpage
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.85\linewidth,keepaspectratio]{evidencias/captura_mitrovic2023_luis_p2.jpeg}
+  \caption{Fragmento subrayado de Mitrović \emph{et al.} (2023) \cite{mitrovic2023websocket}, \textbf{pág.~268} (pág.~2 del PDF) (Luis Paca). Respalda la Sección~5: WebSocket ofrece comunicación \textit{full-duplex} sobre una sola conexión TCP, a diferencia del \textit{long polling} sobre HTTP.}
+  \label{fig:captura-mitrovic-p2}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.85\linewidth,keepaspectratio]{evidencias/captura_mitrovic2023_luis_p12.jpeg}
+  \caption{Fragmento subrayado de Mitrović \emph{et al.} (2023) \cite{mitrovic2023websocket}, \textbf{pág.~278} (pág.~12 del PDF) (Luis Paca). Respalda las Secciones~5 y~6: con WebSocket la tasa de transferencia ronda los 150\,ms, frente a unos 350\,ms con \textit{long polling}.}
+  \label{fig:captura-mitrovic-p12}
 \end{figure}
 
 \end{document}

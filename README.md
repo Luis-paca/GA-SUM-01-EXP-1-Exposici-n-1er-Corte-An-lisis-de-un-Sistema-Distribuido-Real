@@ -13,18 +13,18 @@ Repositorio del **Equipo EJPZ** para la exposición del primer corte de la asign
 
 ## Estructura del Repositorio
 * `diapositivas.tex` / `diapositivas.pdf`: Presentación elaborada en LaTeX (`beamer`) con referencias en formato IEEE.
-* `notas.tex` / `notas.pdf`: Notas desarrolladas de la exposición (2 a 4 páginas), ejemplos del entorno propio, tabla de aportes, declaración de IA y anexo del esquema inicial a mano.
+* `main.tex` / `main.pdf`: Notas desarrolladas de la exposición (2 a 4 páginas), ejemplos del entorno propio, tabla de aportes, declaración de IA y anexo del esquema inicial a mano.
 * `referencias.bib`: Base bibliográfica verificada (mínimo 6 fuentes de los últimos 5 años, incluyendo artículos con DOI verificable).
 * `Arquitectura_JobFinder_Real_EJPZ.drawio` / `arquitectura_jobfinder.png`: Diagrama editable y exportación gráfica de la arquitectura híbrida de JobFinder.
 * `demo_websockets_ejpz/`: Scripts de demostración en vivo (`demo_udp.js`, `server_jobfinder.js`, `cliente_jobfinder.html`).
-* `evidencias/`: Fotografía del boceto inicial a mano (`boceto_mano.jpg`) y 3 capturas anotadas de los artículos citados.
+* `evidencias/`: Fotografía del boceto inicial a mano (`ArquitecturaDistribuidaAmano.jpeg`) y capturas anotadas de los artículos citados.
 * `BITACORA.md`: Registro cronológico de sesiones de trabajo y problemas técnicos resueltos.
 
 ## Instrucciones de Compilación
 
 * **Compilador requerido:** `pdfLaTeX` + `Biber` (distribución TeX Live 2023+ o MiKTeX).
-* **Archivos principales:** `diapositivas.tex` y `notas.tex`.
-* **Dependencias LaTeX:** `beamer`, `inputenc`, `fontenc`, `babel` (`spanish`), `lmodern`, `graphicx`, `booktabs`, `tabularx`, `hyperref`, `biblatex` (`style=ieee`, `backend=biber`).
+* **Archivos principales:** `diapositivas.tex` y `main.tex`.
+* **Dependencias LaTeX:** `beamer`, `inputenc`, `fontenc`, `babel` (`spanish`), `lmodern`, `graphicx`, `booktabs`, `tabularx`, `hyperref`, `csquotes`, `tikz`, `enumitem`, `titlesec`, `array`, `xcolor`, `geometry`, `url`, `biblatex` (`style=ieee`, `backend=biber`).
 
 Para regenerar ambos documentos PDF desde la terminal en la raíz del repositorio, ejecutar en orden:
 
@@ -36,7 +36,8 @@ pdflatex diapositivas.tex
 pdflatex diapositivas.tex
 
 # 2. Compilar Notas de Presentación
-pdflatex notas.tex
-biber notas
-pdflatex notas.tex
-pdflatex notas.tex
+pdflatex main.tex
+biber main
+pdflatex main.tex
+pdflatex main.tex
+```
