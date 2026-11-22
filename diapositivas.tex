@@ -67,22 +67,20 @@
 \begin{columns}[T,totalwidth=\textwidth]
   \begin{column}{0.485\textwidth}
     \begin{block}{Problema y Actores}
-      \begin{itemize}\setlength{\itemsep}{5pt}
-        \item \textbf{Problema:} la UTEQ carece de una bolsa oficial que integre vacantes locales validadas y ofertas externas (\textit{web scraping}), en línea con sistemas de recomendación para graduados \cite{ref1}.
+      \begin{itemize}\setlength{\itemsep}{4pt}
+        \item \textbf{Problema:} sin bolsa oficial UTEQ que integre vacantes validadas y externas (\textit{scraping}), enfoque de recomendación para graduados \cite{ref1}.
         \item \textbf{Graduados:} perfil, búsqueda, postulación y alertas.
-        \item \textbf{Empresas:} publicación de vacantes y gestión de postulantes.
-        \item \textbf{Admin UTEQ:} validación previa (RF-05) y auditoría (RNF-02).
+        \item \textbf{Empresas:} publicación y gestión de postulantes.
+        \item \textbf{Admin UTEQ:} validación (RF-05) y auditoría (RNF-02).
       \end{itemize}
     \end{block}
   \end{column}
   \begin{column}{0.485\textwidth}
-    % TODO: agregar \cite{} de la fuente de estas cifras (INEC / seguimiento UTEQ 2022)
     \begin{alertblock}{Escala y Contexto (cifras)}
-      \begin{itemize}\setlength{\itemsep}{5pt}
-        \item \textbf{20,9\,\%} de jóvenes universitarios en subempleo y \textbf{4,1\,\%} en desempleo (INEC).
-        \item Graduados UTEQ 2022: solo el \textbf{51,50\,\%} trabaja.
-        \item Apenas el \textbf{8,41\,\%} consiguió empleo por bolsas de empleo.
-        \item \textbf{Escala:} una universidad; meta de disponibilidad \textbf{99,5\,\%} (RNF-01).
+      \begin{itemize}\setlength{\itemsep}{6pt}
+        \item \textbf{Ecuador (mayo 2025):} tasas nacionales de \textbf{20,9\,\%} de subempleo y \textbf{4,1\,\%} de desempleo \cite{inec2025enemduMayo}.
+        \item \textbf{Seguimiento UTEQ 2022:} \textbf{51,50\,\%} de graduados encuestados trabajaba; entre ellos, el \textbf{8,41\,\%} halló su primer empleo mediante bolsas de empleo \cite{uteq2022seguimiento}.
+        \item \textbf{Escala institucional:} una universidad, con \textbf{99,5\,\%} como meta de disponibilidad (RNF-01).
       \end{itemize}
     \end{alertblock}
   \end{column}
@@ -154,25 +152,27 @@
 % SECCIÓN 4 — CAP Y PACELC (HEINER ZAMBRANO)
 % ---------------------------------------------------------------------
 \begin{frame}{4. Teoremas CAP y PACELC (Heiner Zambrano)}
-\framesubtitle{Compromiso entre Consistencia y Latencia \cite{ref5}}
+\framesubtitle{Compromiso entre Consistencia, Disponibilidad y Latencia (2 min) \cite{ref5}}
 \vspace{4pt}
-\begin{columns}[T,totalwidth=\textwidth]
-  \begin{column}{0.485\textwidth}
-    \begin{block}{CP — Con Partición de Red (P)}
-      \textbf{Prioridad: Consistencia (C)}\\[6pt]
-      Ante pérdida de enlace con \texttt{BolsaEmpleoNew}, se bloquean escrituras de postulación para evitar duplicados o vacantes sin validar.
-    \end{block}
-  \end{column}
-  \begin{column}{0.485\textwidth}
-    \begin{alertblock}{EL / EC — Operación Normal (E)}
-      \textbf{Prioridad: Latencia (L) y Consistencia (C)}\\[6pt]
-      Sin particiones, prioriza baja latencia en alertas WebSocket (\textbf{PA/EL}) e integridad ACID en PostgreSQL (\textbf{PC/EC}).
-    \end{alertblock}
-  \end{column}
-\end{columns}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm}
+                             >{\raggedright\arraybackslash}X
+                             >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Tipo de dato} & \textbf{Con partición (P)} & \textbf{Sin partición (E)} \\
+\midrule
+\textbf{Núcleo transaccional}\newline(\textbf{PC/EC})
+  & Prioriza \textbf{C}: bloquea escrituras si no hay acceso a PostgreSQL (RF-04, RF-05, RNF-02).
+  & Prioriza \textbf{C}: transacciones ACID en PostgreSQL sobre cuentas, postulaciones y auditoría. \\
+\midrule
+\textbf{Catálogo externo y alertas}\newline(\textbf{PA/EL})
+  & Prioriza \textbf{A}: si el portal externo queda inaccesible, muestra las últimas ofertas importadas.
+  & Prioriza \textbf{L}: alertas rápidas por WebSocket y sincronización periódica del catálogo (RF-07). \\
+\bottomrule
+\end{tabularx}
 
-\vspace{14pt}
-\textbf{Práctica en vivo:} Partición hacia PostgreSQL (\texttt{:5432}) bloqueando escrituras (\texttt{BLOQUEO CAP}).
+\vspace{12pt}
+\textbf{Demo en vivo:} pérdida de acceso a PostgreSQL (\texttt{:5432}) bloqueando escrituras (\texttt{BLOQUEO CAP}).
 \end{frame}
 
 % ---------------------------------------------------------------------
@@ -181,26 +181,33 @@
 \begin{frame}{5. Modelos de Comunicación (Luis Paca)}
 \framesubtitle{Cliente--servidor híbrido: síncrono, asíncrono y tiempo real (1,5 min)}
 \vspace{2pt}
-\begin{columns}[T,totalwidth=\textwidth]
-  \begin{column}{0.485\textwidth}
-    \begin{block}{Síncrono y Tiempo Real}
-      \begin{itemize}\setlength{\itemsep}{5pt}
-        \item \textbf{Cliente--servidor:} sin P2P; toda operación pasa por la API REST sobre TCP.
-        \item \textbf{HTTP/REST (TCP):} búsqueda, postulación y validación; rendimiento sensible a retardo y seguridad Wi-Fi \cite{guo2025tcpudp,ref2}.
-        \item \textbf{WebSocket (RFC 6455):} canal \textit{full-duplex} en \texttt{/ws-notificaciones}, menor latencia que \textit{polling} \cite{ref3,mitrovic2023websocket}.
-      \end{itemize}
-    \end{block}
-  \end{column}
-  \begin{column}{0.485\textwidth}
-    \begin{alertblock}{Asíncrono y Evolución}
-      \begin{itemize}\setlength{\itemsep}{5pt}
-        \item \textbf{Asíncrono:} \textit{scraping} programado (RF-07) y alertas SMTP (RF-06) sin bloquear al usuario; el equipo propone un \textit{broker} con colas AMQP para desacoplar productores y consumidores \cite{petrescu2025iotprotocols,bayilmis2022survey}.
-        \item \textbf{Transporte a futuro:} QUIC sobre UDP evita el bloqueo HoL de TCP \cite{jeddou2023tcpquic,kumar2025kquic} (no es requisito actual).
-        \item \textbf{Por qué:} alcance institucional, navegador estándar (RI-01) y auditoría directa (RNF-02).
-      \end{itemize}
-    \end{alertblock}
-  \end{column}
-\end{columns}
+\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.9cm}
+                             >{\raggedright\arraybackslash}p{3.1cm}
+                             >{\raggedright\arraybackslash}X}
+\toprule
+Modo / Canal & \textbf{Protocolo} & \textbf{Uso en JobFinder y sustento} \\
+\midrule
+Síncrono (núcleo)
+  & HTTP/REST (TCP)
+  & Búsqueda, postulación y validación sin P2P; sensible a retardo y seguridad Wi-Fi \cite{guo2025tcpudp,ref2}. \\
+\midrule
+Tiempo real (RI-05)
+  & WebSocket (RFC 6455)
+  & Alertas en \texttt{/ws-notificaciones}; canal \textit{full-duplex} con menor latencia que \textit{polling} \cite{ref3,mitrovic2023websocket}. \\
+\midrule
+Asíncrono (RF-06, RF-07)
+  & Tareas + SMTP; AMQP (propuesta)
+  & \textit{Scraping} y correo sin bloqueo; el equipo propone un \textit{broker} con colas AMQP para desacoplar productor--consumidor \cite{petrescu2025iotprotocols,bayilmis2022survey}. \\
+\midrule
+Transporte futuro
+  & QUIC (UDP)
+  & Evita el bloqueo HoL de TCP \cite{jeddou2023tcpquic,kumar2025kquic} (no requerido hoy). \\
+\bottomrule
+\end{tabularx}
+
+\vspace{6pt}
+{\footnotesize \textbf{Por qué este modelo:} alcance institucional, acceso desde cualquier navegador (RI-01) y auditoría directa (RNF-02).}
 \end{frame}
 
 % ---------------------------------------------------------------------
@@ -209,54 +216,101 @@
 \begin{frame}{6. Tolerancia a Fallos (Luis Paca)}
 \framesubtitle{Modelos de fallo, detección y recuperación (2 min)}
 \vspace{2pt}
-\begin{columns}[T,totalwidth=\textwidth]
-  \begin{column}{0.485\textwidth}
-    \begin{block}{Modelos de Fallo y Detección}
-      \begin{itemize}\setlength{\itemsep}{5pt}
-        \item \textbf{Omisión:} portal caído / HTML alterado en \textit{scraping}; fallo temporal SMTP.
-        \item \textbf{Temporización:} ofertas expiradas y cortes de WebSocket.
-        \item \textbf{\textit{Crash-stop}:} caída de backend (\texttt{:8080}) o PostgreSQL (\texttt{:5432}); errores de usuario (RU-07).
-        \item \textbf{Detección:} auditoría (RNF-02), estado de importación, vigencia (RF-07) y \textit{timeouts}.
-      \end{itemize}
-    \end{block}
-  \end{column}
-  \begin{column}{0.485\textwidth}
-    \begin{alertblock}{Recuperación y Resiliencia}
-      \begin{itemize}\setlength{\itemsep}{5pt}
-        \item \textbf{\textit{Scraping}:} reintento programado y baja automática de vacantes vencidas (RF-07).
-        \item \textbf{Correo y WS:} cola SMTP; reconexión WS con respaldo a \textit{long polling} \cite{mitrovic2023websocket}.
-        \item \textbf{Evolución sin caídas:} versionado retrocompatible de API y servicios \cite{ref4}.
-        \item \textbf{Datos:} respaldos periódicos para meta de 99,5\,\% (RNF-01).
-      \end{itemize}
-    \end{alertblock}
-  \end{column}
-\end{columns}
+\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.7cm}
+                             >{\raggedright\arraybackslash}p{4.3cm}
+                             >{\raggedright\arraybackslash}X}
+\toprule
+Modelo de fallo & \textbf{Escenario en JobFinder} & \textbf{Detección y recuperación} \\
+\midrule
+Omisión
+  & Portal caído / HTML alterado; fallo temporal SMTP.
+  & \textit{Timeouts} y auditoría (RNF-02); reintento programado (RF-07) y cola de reenvío SMTP. \\
+\midrule
+Temporización
+  & Ofertas externas expiradas; cortes WebSocket.
+  & Comprobación de vigencia (RF-07); baja automática y reconexión WS / \textit{long polling} \cite{mitrovic2023websocket}. \\
+\midrule
+\textit{Crash-stop} y usuario
+  & Caída de \texttt{:8080} o \texttt{:5432}; errores de registro (RU-07).
+  & Validaciones y estado de servicio; respaldos periódicos para meta de 99,5\,\% (RNF-01). \\
+\bottomrule
+\end{tabularx}
+
+\vspace{8pt}
+{\footnotesize \textbf{Evolución sin caídas:} versionado retrocompatible de API y servicios para desplegar cambios sin afectar el núcleo \cite{ref4}.}
 \end{frame}
 
 \begin{frame}{6. Incidente y Análisis de Causas Raíz (Luis Paca)}
 \framesubtitle{FORM-AC-01: Ofertas externas expiradas o ya cubiertas}
 \vspace{2pt}
-\scriptsize
-\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}X}
+\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.1cm}
+                             >{\raggedright\arraybackslash}X}
 \toprule
-Problema & El graduado postula a una oferta que ya no existe en el portal de origen. \\
-Causa inmediata & El catálogo local solo se actualiza en cada ejecución del \textit{scraping}. \\
+Problema & El graduado postula a una oferta ya inexistente en el origen. \\
+Causa inmediata & El catálogo local solo se actualiza en cada ciclo de \textit{scraping}. \\
 Causa raíz & Sin control sobre el origen; consistencia eventual por diseño (\textbf{PA/EL}). \\
-Acción correctiva & Sincronización que desactiva o elimina las ofertas no vigentes (RF-07). \\
-Acción preventiva & Etiqueta ``Ofertas de Sitios Externos'', fecha de verificación visible y prioridad a ofertas validadas (RF-05). \\
-Verificación & Auditoría de importaciones (RNF-02, RP-04) y prueba de desactivación automática al retirar una vacante en el portal origen. \\
+Acción correctiva & Sincronización que desactiva ofertas no vigentes (RF-07). \\
+Acción preventiva & Etiqueta ``Sitios Externos'', fecha de verificación y prioridad a ofertas validadas (RF-05). \\
+Verificación & Auditoría de importaciones (RNF-02, RP-04) y prueba de baja automática tras retiro en origen. \\
 \bottomrule
 \end{tabularx}
-\vspace{6pt}
 
-{\footnotesize La compatibilidad entre versiones de servicios permite desplegar ajustes de ingesta sin interrumpir el núcleo \cite{ref4}.}
+\vspace{6pt}
+{\footnotesize Versionar contratos entre servicios permite ajustar la ingesta sin interrumpir el núcleo \cite{ref4}.}
 \end{frame}
 
 % ---------------------------------------------------------------------
-% SECCIONES 7 A 8 (Pendiente de completar por los demás integrantes)
+% SECCIÓN 7 — COMPARACIÓN Y POSTURA CRÍTICA (JEREMY JARAMILLO)
 % ---------------------------------------------------------------------
-% \begin{frame}{7. Comparación y Postura Crítica}{...} ... \end{frame}
-% \begin{frame}{8. Lecciones para el PFC y Conclusiones}{...} ... \end{frame}
+\begin{frame}{7. Comparación y Postura Crítica (Jeremy Jaramillo)}
+\framesubtitle{JobFinder (UTEQ) frente a LinkedIn (1 min)}
+\vspace{2pt}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.5cm}
+                             >{\raggedright\arraybackslash}X
+                             >{\raggedright\arraybackslash}X}
+\toprule
+Criterio & \textbf{JobFinder (UTEQ)} & \textbf{LinkedIn} \\
+\midrule
+Alcance e infraestructura
+  & Escala universitaria; backend único (\texttt{:8080}) sobre PostgreSQL (\texttt{:5432}).
+  & Escala global; sistemas distribuidos de \textit{feed} y búsqueda \cite{linkedinFeedInfra} y plataforma de eventos Kafka/Northguard \cite{linkedin2025northguard}. \\
+\midrule
+Gestión de datos
+  & Núcleo \textbf{PC/EC} (ACID, validación RF-05); catálogo externo \textbf{PA/EL}.
+  & Almacenes e índices distribuidos para \textit{feed}, búsqueda y recomendación \cite{linkedinFeedInfra,ref1}; \textit{logs} virtualizados con Xinfra \cite{linkedin2025northguard}. \\
+\midrule
+Tolerancia a fallos
+  & Punto único de fallo en \texttt{:8080} y \texttt{:5432}; mitigación por respaldos (RNF-01).
+  & Replicación por segmentos, metadatos distribuidos con Raft en Northguard y enrutamiento transparente con Xinfra \cite{linkedin2025northguard}. \\
+\bottomrule
+\end{tabularx}
+
+\vspace{6pt}
+\textbf{Postura crítica:} conservar la integridad \textbf{PC/EC} del núcleo de JobFinder y desacoplar la ingesta externa y las alertas mediante mensajería asíncrona, sin caer en sobreingeniería \cite{ref4,petrescu2025iotprotocols}.
+\end{frame}
+
+% ---------------------------------------------------------------------
+% SECCIÓN 8 — LECCIONES PARA EL PFC Y CONCLUSIONES (JEREMY JARAMILLO)
+% ---------------------------------------------------------------------
+\begin{frame}{8. Lecciones para el PFC y Conclusiones (Jeremy Jaramillo)}
+\framesubtitle{Decisiones arquitectónicas y cierre (1 min)}
+\vspace{2pt}
+\begin{block}{Decisiones que aplicaremos en el PFC}
+  \begin{itemize}\setlength{\itemsep}{5pt}
+    \item \textbf{Arquitectura desacoplada:} \textit{API Gateway} y servicios separados (\texttt{Perfiles}, \texttt{Ofertas}, \texttt{Postulaciones}, \texttt{Ingesta} y \texttt{Notificaciones}) con contratos versionados \cite{ref4}.
+    \item \textbf{Comunicación diferenciada:} gRPC interno síncrono en el núcleo y propuesta de \textit{broker} con colas AMQP para ingesta y alertas \cite{petrescu2025iotprotocols}.
+    \item \textbf{Consistencia y verificación:} conservar \textbf{PC/EC} en PostgreSQL (causal+ si escala entre sedes \cite{ref5}) y validar con corte de acceso a \texttt{:5432} y reconexión WebSocket \cite{ref3}.
+  \end{itemize}
+\end{block}
+
+\vspace{6pt}
+\begin{alertblock}{Conclusión --- Riesgo principal identificado}
+  En JobFinder el riesgo principal no es el volumen de usuarios, sino el \textbf{acoplamiento de la ingesta externa (\textit{scraping}) y el correo (SMTP) con el núcleo transaccional} en PostgreSQL, problema que guía el diseño del PFC.
+\end{alertblock}
+\end{frame}
 
 % ---------------------------------------------------------------------
 % REFERENCIAS (IEEE con biblatex)
